@@ -1,4 +1,4 @@
-# CSSOS 2.1
+# CSSOS 2.2
 
 A cégünk telefonjának operációs rendszere. Böngészőben és Androidos telefonon (launcherként) is fut.
 

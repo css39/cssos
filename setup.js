@@ -145,6 +145,7 @@ window.addEventListener('load', () => {
 //  Frissítés után: „Újdonságok” ablak (pl. 1.4 → 2.0), az adatok megmaradnak
 // =====================================================================
 const WHATS_NEW = [
+  ['star', 'Ez már online frissítés volt!', 'A 2.2 az internetről érkezett, telepítés nélkül. Így jön majd a 3.0 is.'],
   ['chevLeft', 'Három kezdőképernyő-oldal', 'Balra a Ma nézet widgetekkel, jobbra az Alkalmazástár.'],
   ['settings', 'Új vezérlőközpont', 'Zenelejátszó, zseblámpa, energiatakarékos mód, hangerő-csúszka.'],
   ['lock', 'Widgetek a zárolási képernyőn', 'Időjárás, akkumulátor és a következő esemény.'],

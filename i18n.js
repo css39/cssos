@@ -132,6 +132,8 @@ const EN = new Map(Object.entries({
   'Szövegméret': 'Text size', 'Így néz ki a szöveg ebben a méretben.': 'This is how text looks at this size.', 'Automatikus zárolás': 'Auto-Lock',
   'Ennyi idő után kapcsol ki a képernyő, ha nem nyúlsz a telefonhoz.': "The screen turns off after this long if you don't touch the phone.",
   // Frissítés
+  'Ez már online frissítés volt!': 'That was an online update!',
+  'A 2.2 az internetről érkezett, telepítés nélkül. Így jön majd a 3.0 is.': '2.2 arrived over the internet, no install needed. 3.0 will arrive the same way.',
   'Koppints a frissítések kereséséhez.': 'Tap to check for updates.', 'Böngészőben mindig a legfrissebb verzió fut.': 'The browser always runs the latest version.',
   'Újraindítás és frissítés': 'Restart and update', 'Új app letöltése': 'Download new app',
   'A telefon naponta egyszer magától is megnézi, van-e új CSSOS. Az adataid frissítéskor megmaradnak.': 'Your phone also checks for a new CSSOS once a day. Your data is kept when updating.',
