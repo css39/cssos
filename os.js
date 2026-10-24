@@ -5,7 +5,7 @@
 // =====================================================================
 
 // A rendszer neve — ha lesz végleges név, csak itt kell átírni.
-const OS = { name: 'CSSOS', short: 'CSS', version: '3.2' };
+const OS = { name: 'CSSOS', short: 'CSS', version: '3.3' };
 
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
@@ -103,10 +103,15 @@ const contentEl = $('#app-content');
 function saveSettings() { store.set('settings', settings); applySettings(); }
 // Gyors effektek: homályosítás nélkül, könnyített háttérrel. Telefonon (Android, érintőképernyő)
 // automatikusan ez megy, mert a homályosítás a gyengébb grafikus chipeket nagyon megterheli.
-function fxFast() {
-  // 3.0: alapból mindenhol a látványos effektek mennek; a „Gyors” mód kézzel kapcsolható be
-  return settings.effects === 'fast';
+// Effektszintek: high = látványos (teljes üveg), mid = sima (üveg elmosás nélkül), fast = gyors.
+// Automatikus: telefonon „sima”, mert a teljes üveg a középkategóriás telefonokon (pl. Poco X4 Pro) akad.
+function fxLevel() {
+  const e = settings.effects;
+  if (e === 'high' || e === 'mid' || e === 'fast') return e;
+  return window.CSSOSAndroid || matchMedia('(pointer: coarse)').matches ? 'mid' : 'high';
 }
+function fxFast() { return fxLevel() === 'fast'; }
+function fxMid() { return fxLevel() === 'mid'; }
 
 // Sötét-e most a téma (automatikus módban este 19 és reggel 7 között)
 function isDark() {
@@ -132,6 +137,7 @@ function applySettings() {
   screenEl.classList.toggle('live-wall', LIVE_WALLS.has(settings.wallpaper) && settings.wallpaper !== AURORA);
   screenEl.classList.toggle('aurora', settings.wallpaper === AURORA);
   screenEl.classList.toggle('fx-fast', fxFast());
+  screenEl.classList.toggle('fx-mid', fxMid());
   lockEl.classList.toggle('with-sec', settings.lockSeconds);
   const owner = $('#lock-owner');
   owner.textContent = settings.ownerMsg;

@@ -1,6 +1,6 @@
 {
-    "version":  "3.2",
-    "code":  302,
+    "version":  "3.3",
+    "code":  303,
     "minApk":  201,
     "files":  [
                   "apps.js",

@@ -145,9 +145,7 @@ window.addEventListener('load', () => {
 //  Frissítés után: „Újdonságok” ablak (pl. 1.4 → 2.0), az adatok megmaradnak
 // =====================================================================
 const WHATS_NEW = [
-  ['palette', 'Folyékony üveg', 'Fényes, csillogó üvegszélek mindenhol a rendszerben.'],
-  ['sun', 'Mozgó fény', 'A csillanás követi, ahogy a telefont döntöd.'],
-  ['settings', 'Üveg az appokban is', 'Az appok mögött átlátszik az elmosott háttérkép.'],
+  ['bolt', 'Sima teljesítmény', 'Telefonon az üveg most elmosás nélkül fut, így nem akad. Beállítások → Kijelző → Effektek.'],
 ];
 
 function showWhatsNew(from) {

@@ -167,8 +167,8 @@ const SETTINGS_PAGES = {
       <div class="group">${sSeg('autoLock', AUTO_LOCK_OPTS)}</div>
       ${sNote('Ennyi idő után kapcsol ki a képernyő, ha nem nyúlsz a telefonhoz.')}
       ${sLabel('Effektek')}
-      <div class="group">${sSeg('effects', [['auto', 'Automatikus'], ['high', 'Látványos'], ['fast', 'Gyors']])}</div>
-      ${sNote('A „Gyors” mód elhagyja a homályosított hátteret, így gyengébb telefonon is folyamatosak az animációk. Ha akad a telefon, kapcsold be.')}
+      <div class="group">${sSeg('effects', [['auto', 'Automatikus'], ['high', 'Látványos'], ['mid', 'Sima'], ['fast', 'Gyors']])}</div>
+      ${sNote('Látványos: teljes folyékony üveg. Sima: üveg elmosás és mozgó fény nélkül, középkategóriás telefonokra. Gyors: egyszerű felületek. Az Automatikus telefonon a Simát, számítógépen a Látványosat választja.')}
       <div class="group">
         ${sSw('reduceMotion', 'Animációk csökkentése')}
         ${sLink('access', 'Kisegítő lehetőségek')}

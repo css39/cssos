@@ -324,7 +324,7 @@ function setLight(x, y) {
     screenEl.style.setProperty('--ly', lightNext[1].toFixed(1) + '%');
   });
 }
-const lightOff = () => motionOff() || fxFast();
+const lightOff = () => motionOff() || fxFast() || fxMid();
 // Gépen: az egér helye a kijelzőn
 screenEl.addEventListener('pointermove', e => {
   if (e.pointerType !== 'mouse' || lightOff()) return;

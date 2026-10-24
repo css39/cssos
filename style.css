@@ -1381,3 +1381,31 @@ button.row:active { background: var(--row-hi); transition-duration: 0s; }
 @property --lx { syntax: '<percentage>'; inherits: true; initial-value: 30%; }
 @property --ly { syntax: '<percentage>'; inherits: true; initial-value: 0%; }
 #screen { transition: --lx .5s ease-out, --ly .5s ease-out; }
+
+/* =====================================================================
+   3.3: „Sima” effektszint (telefonon automatikusan, pl. Poco X4 Pro)
+   Ugyanaz az üveg-kinézet (fényes szél, mélység, csillanás), de a drága
+   részek nélkül: nincs mögöttes elmosás, nincs mozgó fény, nincs
+   animált szűrő. Az átlátszóságot kicsit erősebb színezés pótolja.
+   ===================================================================== */
+#screen.fx-mid { --g-sys: rgba(22, 26, 44, .5); --g-app: rgba(24, 28, 46, .55); transition: none; }
+#screen.fx-mid.light { --g-app: rgba(255, 255, 255, .72); }
+#screen.fx-mid *, #screen.fx-mid *::before, #screen.fx-mid *::after { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+/* Teljes képernyős panelek: elmosás helyett majdnem átlátszatlan, színezett háttér */
+#screen.fx-mid :is(#cc, #nc, #spot, #switcher) { background: rgba(10, 12, 24, .9); }
+#screen.fx-mid :is(#qmenu, #radial) { background: rgba(4, 5, 12, .62); }
+#screen.fx-mid :is(#banner, .nc-card, .qm-head, .qm-group, #vol-hud) { --g-sys: rgba(30, 32, 48, .94); }
+#screen.fx-mid #whatsnew { background: rgba(5, 7, 15, .88); }
+#screen.fx-mid .game-msg { background: rgba(13, 15, 23, .94); }
+/* Appok mögött: a háttérkép elmosás nélkül (a mesh hátterek amúgy is lágyak) */
+#screen.fx-mid #app-window:not(.dark-ui)::before { filter: none; inset: 0; }
+#screen.fx-mid :is(.st-detail, .viewer, .wx-find) { background: rgba(8, 9, 18, .94); }
+#screen.light.fx-mid :is(.st-detail, .viewer, .wx-find) { background: rgba(240, 242, 248, .96); }
+/* Animáció közben drága szűrők és újrarajzolások ki */
+#screen.fx-mid.app-open #home { filter: none; }
+#screen.fx-mid :is(.app-icon .icon .ic, .tw-ring::before, .sw-shot, .update-logo, .su-logo, .wn-logo, .boot-logo) { filter: none; }
+#screen.fx-mid.ring-music #cam-ring { filter: none; }
+#screen.fx-mid.unlocking .app-icon .icon::after, #screen.fx-mid .app-icon:hover .icon::after { animation: none; }
+#screen.fx-mid .aurora-fx i { mix-blend-mode: normal; filter: blur(30px); opacity: .6; }
+#screen.fx-mid .aurora-fx i:nth-child(n+4) { display: none; }
+#screen.fx-mid .touch-ring { box-shadow: none; }
