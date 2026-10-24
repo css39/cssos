@@ -1315,3 +1315,69 @@ button.row:active { background: var(--row-hi); transition-duration: 0s; }
 @keyframes radIn { from { scale: .2; opacity: 0; } }
 @keyframes radItem { from { transform: translate(0, 0) scale(.2); opacity: 0; } }
 #screen.fx-fast :is(#qmenu, #radial) { background: rgba(4,5,12,.7); }
+
+/* =====================================================================
+   3.2: folyékony üveg
+   Rétegek alulról: mögöttes elmosás → színezés → fényes átmenet →
+   a dőléssel mozgó csillanás → csillogó, fénytörő szél.
+   A „Gyors” effektmódban nem működik (ott marad az egyszerű kinézet).
+   ===================================================================== */
+#screen {
+  --lx: 30%; --ly: 0%;                                   /* a fény helye: a dőlés/egér mozgatja */
+  --g-sys: rgba(26, 30, 48, .30);                        /* rendszer-üveg (a háttérképen) */
+  --g-app: rgba(30, 34, 52, .34);                        /* app-üveg (az appokon belül) */
+  --g-edge: linear-gradient(140deg, rgba(255,255,255,.62), rgba(255,255,255,.10) 32%, rgba(255,255,255,.04) 62%, rgba(255,255,255,.36));
+  --g-sheen: radial-gradient(130% 90% at var(--lx) var(--ly), rgba(255,255,255,.26), rgba(255,255,255,0) 55%);
+  --g-depth: linear-gradient(165deg, rgba(255,255,255,.10), rgba(255,255,255,.02) 42%, rgba(0,0,0,.10));
+  --g-shadow: inset 0 1px 1px rgba(255,255,255,.28), inset 0 -1px 2px rgba(0,0,0,.18), 0 22px 44px -20px rgba(0,0,0,.6);
+  --g-fx: blur(26px) saturate(210%) brightness(1.06);
+  --app-tint: rgba(6, 7, 14, .58);
+}
+#screen.light {
+  --g-app: rgba(255, 255, 255, .5);
+  --g-edge: linear-gradient(140deg, rgba(255,255,255,.95), rgba(255,255,255,.35) 32%, rgba(255,255,255,.2) 62%, rgba(255,255,255,.8));
+  --app-tint: rgba(238, 240, 248, .62);
+}
+
+/* Rendszer-üveg: mindig sötétes színezés, mert fehér szöveg van rajta */
+#screen:not(.fx-fast) :is(.widget, .tw:not(.tw-cal):not(.tw-note), .mwidget:not(#mw-cc), #dock, #spot-pill, .lw, #lock-owner, .lib-row, .lib-search,
+  .nc-card, #banner, .cc-conn, .cc-media, .cc-tile:not(.on), .cc-slider, .qm-head, .qm-group, .spot-row, .spot-bar, .rad-item:not(.on), .rad-core,
+  #vol-hud, .wn-card, .su-tips li, .call-grid button span, .pin-keys button:not(.ghost), #edit-done, .sw-clear, .wx-card, .wx-btn, .nc-clear) {
+  border: 1px solid transparent;
+  background: var(--g-sheen) padding-box, var(--g-depth) padding-box, linear-gradient(var(--g-sys), var(--g-sys)) padding-box, var(--g-edge) border-box;
+  -webkit-backdrop-filter: var(--g-fx); backdrop-filter: var(--g-fx);
+  box-shadow: var(--g-shadow);
+}
+
+/* Az appok mögött az elmosott háttérkép látszik */
+#screen:not(.fx-fast) #app-window:not(.dark-ui) { background: transparent; }
+#screen:not(.fx-fast) #app-window:not(.dark-ui)::before {
+  content: ""; position: absolute; inset: -60px; z-index: 0; pointer-events: none;
+  background: var(--wall); filter: blur(46px) saturate(1.5);
+}
+#screen:not(.fx-fast) #app-window:not(.dark-ui)::after { content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none; background: var(--app-tint); }
+#app-content { z-index: 1; }
+#screen:not(.fx-fast) :is(.st-detail, .viewer, .wx-find) { background: var(--app-tint); -webkit-backdrop-filter: blur(40px) saturate(160%); backdrop-filter: blur(40px) saturate(160%); }
+
+/* App-üveg: a téma szerint sötét vagy világos */
+#screen:not(.fx-fast) :is(.group, .segmented, .s-search, .preset, .ct-act, .key, .tabbar, .chat-input input, .bubble.bot, .st-btn.open,
+  .ttt-cell, .mem-front, .analog, .p-undo, .al-day:not(.on), .st-del) {
+  border: 1px solid transparent;
+  background: var(--g-sheen) padding-box, var(--g-depth) padding-box, linear-gradient(var(--g-app), var(--g-app)) padding-box, var(--g-edge) border-box;
+  -webkit-backdrop-filter: var(--g-fx); backdrop-filter: var(--g-fx);
+  box-shadow: var(--g-shadow);
+}
+#screen:not(.fx-fast) .tabbar { border-radius: 26px; margin: 0 10px 2px; border-top: 1px solid transparent; }
+#screen:not(.fx-fast) .segmented button.on { background: rgba(255,255,255,.22); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 4px 12px rgba(0,0,0,.2); }
+#screen.light:not(.fx-fast) .segmented button.on { background: rgba(255,255,255,.9); }
+#screen.light:not(.fx-fast) .group { box-shadow: var(--g-shadow); }
+
+/* A kiválasztott, színes elemek is kapnak üvegfényt */
+#screen:not(.fx-fast) :is(.cc-tile.on, .btn, .st-btn.get, .call-btn, .send, .switch.on, .rad-item.on, .su-next) {
+  background-image: var(--g-sheen), linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,0) 55%);
+}
+
+/* A csillanás finoman mozog, amikor a fény helye változik */
+@property --lx { syntax: '<percentage>'; inherits: true; initial-value: 30%; }
+@property --ly { syntax: '<percentage>'; inherits: true; initial-value: 0%; }
+#screen { transition: --lx .5s ease-out, --ly .5s ease-out; }

@@ -310,3 +310,29 @@ function dblTap(e) {
 }
 $('#home').addEventListener('pointerup', e => { if (!current && !locked) dblTap(e); });
 lockEl.addEventListener('pointerup', e => { if (!lockEl.classList.contains('dragging')) dblTap(e); });
+
+// =====================================================================
+//  5. Folyékony üveg: a csillanás a telefon dőlését (gépen az egeret) követi
+// =====================================================================
+let lightRaf = 0, lightNext = null;
+function setLight(x, y) {
+  lightNext = [Math.max(0, Math.min(100, x)), Math.max(0, Math.min(100, y))];
+  if (lightRaf) return;
+  lightRaf = requestAnimationFrame(() => {
+    lightRaf = 0;
+    screenEl.style.setProperty('--lx', lightNext[0].toFixed(1) + '%');
+    screenEl.style.setProperty('--ly', lightNext[1].toFixed(1) + '%');
+  });
+}
+const lightOff = () => motionOff() || fxFast();
+// Gépen: az egér helye a kijelzőn
+screenEl.addEventListener('pointermove', e => {
+  if (e.pointerType !== 'mouse' || lightOff()) return;
+  const r = screenEl.getBoundingClientRect();
+  setLight(((e.clientX - r.left) / r.width) * 100, ((e.clientY - r.top) / r.height) * 100 - 20);
+});
+// Telefonon: a dőlés (balra-jobbra és előre-hátra)
+window.addEventListener('deviceorientation', e => {
+  if (e.gamma === null || lightOff()) return;
+  setLight(50 + e.gamma * 1.6, 20 + (e.beta - 45) * 1.2);
+});

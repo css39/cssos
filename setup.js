@@ -145,10 +145,9 @@ window.addEventListener('load', () => {
 //  Frissítés után: „Újdonságok” ablak (pl. 1.4 → 2.0), az adatok megmaradnak
 // =====================================================================
 const WHATS_NEW = [
-  ['hand', 'Gesztusnavigáció', 'Húzd fel az alsó csíkot: az app követi az ujjad. Félúton megállva appváltó.'],
-  ['settings', 'Gyorsmenü', 'Tarts nyomva egy ikont az app gyors műveleteihez.'],
-  ['star', 'Varázskör', 'Tartsd nyomva a kezdőképernyő üres részét: gyűrű 6 gyorsgombbal.'],
-  ['moonSmall', 'Dupla koppintás', 'Koppints duplán az üres képernyőre, és kikapcsol a kijelző.'],
+  ['palette', 'Folyékony üveg', 'Fényes, csillogó üvegszélek mindenhol a rendszerben.'],
+  ['sun', 'Mozgó fény', 'A csillanás követi, ahogy a telefont döntöd.'],
+  ['settings', 'Üveg az appokban is', 'Az appok mögött átlátszik az elmosott háttérkép.'],
 ];
 
 function showWhatsNew(from) {

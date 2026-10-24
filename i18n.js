@@ -131,6 +131,10 @@ const EN = new Map(Object.entries({
   'Fényerő': 'Brightness', 'Szemkímélő mód': 'Night Shift', 'Melegebb színűre állítja a kijelzőt, ami este kíméli a szemet.': 'Makes the screen warmer, which is easier on your eyes at night.',
   'Szövegméret': 'Text size', 'Így néz ki a szöveg ebben a méretben.': 'This is how text looks at this size.', 'Automatikus zárolás': 'Auto-Lock',
   'Ennyi idő után kapcsol ki a képernyő, ha nem nyúlsz a telefonhoz.': "The screen turns off after this long if you don't touch the phone.",
+  // 3.2 folyékony üveg
+  'Folyékony üveg': 'Liquid glass', 'Fényes, csillogó üvegszélek mindenhol a rendszerben.': 'Shiny, glinting glass edges everywhere in the system.',
+  'Mozgó fény': 'Moving light', 'A csillanás követi, ahogy a telefont döntöd.': 'The glint follows as you tilt your phone.',
+  'Üveg az appokban is': 'Glass inside apps too', 'Az appok mögött átlátszik az elmosott háttérkép.': 'Your blurred wallpaper shows through behind apps.',
   // 3.1 mechanikák
   'Gesztusok': 'Gestures', 'Gesztusnavigáció': 'Gesture navigation', 'Gyorsmenü': 'Quick menu', 'Varázskör': 'Magic ring',
   'Dupla koppintás: kijelző ki': 'Double-tap to sleep', 'Dupla koppintás': 'Double tap',

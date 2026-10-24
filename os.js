@@ -5,7 +5,7 @@
 // =====================================================================
 
 // A rendszer neve — ha lesz végleges név, csak itt kell átírni.
-const OS = { name: 'CSSOS', short: 'CSS', version: '3.1' };
+const OS = { name: 'CSSOS', short: 'CSS', version: '3.2' };
 
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
