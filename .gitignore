@@ -1,0 +1,7 @@
+# Android: építési fájlok és a gép saját beállításai
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/.idea/
+*.iml

@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CSSOS</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="phone">
+  <span class="side-btn" id="btn-vol-up"></span>
+  <span class="side-btn" id="btn-vol-down"></span>
+  <span class="side-btn" id="btn-power" title="Bekapcsoló gomb"></span>
+
+  <div id="screen" class="locked">
+    <!-- Kezdőképernyő -->
+    <div id="home">
+      <!-- Három oldal egymás mellett: Ma (widgetek), Appok, Alkalmazástár — oldalra lapozható -->
+      <div id="pages"><div id="pager">
+        <section class="page" id="page-today"></section>
+        <section class="page" id="page-apps"><div id="app-grid"></div></section>
+        <section class="page" id="page-lib"></section>
+      </div></div>
+      <div id="page-dots"><i data-pg="0"></i><i data-pg="1"></i><i data-pg="2"></i></div>
+      <div id="dock"></div>
+      <button id="spot-pill"><i data-ic="search"></i>Keresés</button>
+    </div>
+
+    <!-- Megnyitott alkalmazás -->
+    <div id="app-window"><div id="app-content"></div></div>
+
+    <!-- Zárolási képernyő -->
+    <div id="lock">
+      <div class="lock-main">
+        <div class="lock-icon" data-ic="lock"></div>
+        <div id="lock-date" class="lock-date"></div>
+        <div id="lock-time" class="lock-time"></div>
+        <div id="lock-widgets"></div>
+      </div>
+      <div id="pin">
+        <div class="pin-title">Add meg a PIN-kódot</div>
+        <div id="pin-dots" class="pin-dots"><i></i><i></i><i></i><i></i></div>
+        <div id="pin-keys" class="pin-keys"></div>
+      </div>
+      <div class="mwidget lock-mw" id="mw-lock" hidden></div>
+      <div id="lock-notifs"></div>
+      <div id="lock-owner" hidden></div>
+      <button class="lock-hint"><span>︿</span>Csúsztasd felfelé a feloldáshoz</button>
+    </div>
+
+    <!-- Vezérlőközpont -->
+    <div id="cc">
+      <div class="cc-head">Vezérlőközpont</div>
+      <div class="cc-top">
+        <!-- Kapcsolatok: 2×2 csempe egy blokkban -->
+        <div class="cc-conn">
+          <button class="cc-tile" data-t="airplane" style="--on:#ff9f0a"><i data-ic="plane"></i><small>Repülő</small></button>
+          <button class="cc-tile" data-t="wifi" style="--on:#0a84ff"><i data-ic="wifi"></i><small>Wi-Fi</small></button>
+          <button class="cc-tile" data-t="data" style="--on:#34c759"><i data-ic="signal"></i><small>Mobiladat</small></button>
+          <button class="cc-tile" data-t="bt" style="--on:#0a84ff"><i data-ic="bluetooth"></i><small>Bluetooth</small></button>
+        </div>
+        <!-- Zene: ha szól, a lejátszó; ha nem, egy gomb a Zene apphoz -->
+        <div class="cc-media">
+          <div class="mwidget cc-mw" id="mw-cc" hidden></div>
+          <button class="cc-media-empty" data-t="open:music"><i data-ic="music"></i><small>Nem szól zene</small></button>
+        </div>
+      </div>
+      <div class="cc-grid">
+        <button class="cc-tile" data-t="dnd" style="--on:#5e5ce6"><i data-ic="moon"></i><small>Ne zavarj</small></button>
+        <button class="cc-tile" data-t="dark" style="--on:#48484a"><i data-ic="contrast"></i><small>Sötét mód</small></button>
+        <button class="cc-tile" data-t="torch" style="--on:#ffd60a"><i data-ic="flashlight"></i><small>Zseblámpa</small></button>
+        <button class="cc-tile" data-t="saver" style="--on:#ffd60a"><i data-ic="battery"></i><small>Energiatakarékos</small></button>
+        <button class="cc-tile" data-t="open:clock"><i data-ic="timer"></i><small>Időzítő</small></button>
+        <button class="cc-tile" data-t="open:camera"><i data-ic="camera"></i><small>Kamera</small></button>
+        <button class="cc-tile" data-t="open:calculator"><i data-ic="calculator"></i><small>Számológép</small></button>
+        <button class="cc-tile" data-t="lock"><i data-ic="lock"></i><small>Zárolás</small></button>
+      </div>
+      <div class="cc-sliders">
+        <label class="cc-slider"><i data-ic="sun"></i><input type="range" id="bright" min="20" max="100" value="100" aria-label="Fényerő"></label>
+        <label class="cc-slider"><i data-ic="speaker"></i><input type="range" id="vol" min="0" max="100" value="60" aria-label="Hangerő"></label>
+      </div>
+    </div>
+
+    <div id="switcher"></div>
+    <div id="banner"></div>
+    <div id="vol-hud"></div>
+
+    <div id="statusbar">
+      <span id="sb-time"></span>
+      <div class="sb-right">
+        <span id="sb-alarm" data-ic="alarm" hidden></span>
+        <span id="sb-plane" data-ic="plane" hidden></span>
+        <span id="sb-net" hidden>5G</span>
+        <svg id="sb-signal" width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+        <svg id="sb-wifi" width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1.5 4.5a9.5 9.5 0 0 1 13 0"/><path d="M4.2 7.3a5.6 5.6 0 0 1 7.6 0"/><circle cx="8" cy="10.3" r="1.3" fill="currentColor" stroke="none"/></svg>
+        <span id="sb-pct" hidden></span>
+        <div class="batt"><i id="batt-fill"></i></div>
+      </div>
+    </div>
+    <div id="cam-ring" title="Fénygyűrű"></div>
+    <div id="homebar"><i></i></div>
+    <div id="warm"></div>
+    <div id="dim"></div>
+    <div id="boot"><div class="boot-logo"></div><div class="boot-name"></div></div>
+    <div id="off"></div>
+  </div>
+</div>
+<p class="caption" id="caption"></p>
+
+<script src="icons.js"></script>
+<script src="i18n.js"></script>
+<script src="os.js"></script>
+<script src="apps.js"></script>
+<script src="extra.js"></script>
+<script src="appstore.js"></script>
+<script src="settings.js"></script>
+<script src="cool.js"></script>
+<script src="system.js"></script>
+<script src="wow.js"></script>
+<script src="pages.js"></script>
+<script src="setup.js"></script>
+</body>
+</html>

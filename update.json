@@ -1,0 +1,21 @@
+﻿{
+    "version":  "2.1",
+    "code":  201,
+    "minApk":  201,
+    "files":  [
+                  "apps.js",
+                  "appstore.js",
+                  "cool.js",
+                  "extra.js",
+                  "i18n.js",
+                  "icons.js",
+                  "index.html",
+                  "os.js",
+                  "pages.js",
+                  "settings.js",
+                  "setup.js",
+                  "style.css",
+                  "system.js",
+                  "wow.js"
+              ]
+}
