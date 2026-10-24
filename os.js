@@ -5,7 +5,7 @@
 // =====================================================================
 
 // A rendszer neve — ha lesz végleges név, csak itt kell átírni.
-const OS = { name: 'CSSOS', short: 'CSS', version: '2.2' };
+const OS = { name: 'CSSOS', short: 'CSS', version: '3.0' };
 
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
@@ -34,12 +34,19 @@ const store = {
 
 // ---------- Beállítások ----------
 const WALLPAPERS = [
-  'linear-gradient(160deg,#1e3c72,#2a5298 45%,#7f53ac)',
-  'linear-gradient(160deg,#ff512f,#dd2476)',
-  'linear-gradient(160deg,#11998e,#38ef7d)',
-  'linear-gradient(160deg,#0f2027,#203a43,#2c5364)',
-  'linear-gradient(160deg,#f7971e,#ffd200)',
-  'radial-gradient(circle at 30% 20%,#8e2de2,#4a00e0 60%,#120136)',
+  // 3.0 „mesh” hátterek: egymásba olvadó fényfoltok egy mély alapszínen
+  // Éjfél (alapértelmezett)
+  'radial-gradient(at 18% 12%,#6d4ae0 0,transparent 52%),radial-gradient(at 88% 28%,#1f8fff 0,transparent 46%),radial-gradient(at 30% 78%,#0fb5a8 0,transparent 42%),radial-gradient(at 85% 96%,#ff4f8b 0,transparent 48%),#0a0c22',
+  // Naplemente
+  'radial-gradient(at 12% 88%,#ff8a3d 0,transparent 55%),radial-gradient(at 86% 18%,#ff3d77 0,transparent 50%),radial-gradient(at 55% 50%,#9b2fd6 0,transparent 55%),#2a0a2e',
+  // Erdő
+  'radial-gradient(at 20% 20%,#2ee59d 0,transparent 45%),radial-gradient(at 90% 60%,#00a3a4 0,transparent 50%),radial-gradient(at 30% 95%,#b8f03b 0,transparent 35%),#06261d',
+  // Grafit
+  'radial-gradient(at 25% 15%,#3a4460 0,transparent 55%),radial-gradient(at 85% 85%,#262d40 0,transparent 55%),#0b0d13',
+  // Homok
+  'radial-gradient(at 20% 15%,#ffe2a8 0,transparent 55%),radial-gradient(at 85% 60%,#f58a5b 0,transparent 55%),radial-gradient(at 30% 95%,#e85d8a 0,transparent 45%),#d99a52',
+  // Ultraviola
+  'radial-gradient(at 15% 20%,#ff2fd6 0,transparent 42%),radial-gradient(at 85% 35%,#5b2bff 0,transparent 50%),radial-gradient(at 45% 90%,#00d1ff 0,transparent 40%),#12002b',
   // Élő háttérképek (lassan mozognak)
   'linear-gradient(120deg,#0f2027,#2c5364,#11998e,#38ef7d,#2c5364,#0f2027)',
   'linear-gradient(120deg,#ff512f,#dd2476,#7f53ac,#2a5298,#dd2476,#ff512f)',
@@ -95,9 +102,8 @@ function saveSettings() { store.set('settings', settings); applySettings(); }
 // Gyors effektek: homályosítás nélkül, könnyített háttérrel. Telefonon (Android, érintőképernyő)
 // automatikusan ez megy, mert a homályosítás a gyengébb grafikus chipeket nagyon megterheli.
 function fxFast() {
-  if (settings.effects === 'fast') return true;
-  if (settings.effects === 'high') return false;
-  return !!window.CSSOSAndroid || matchMedia('(pointer: coarse)').matches;
+  // 3.0: alapból mindenhol a látványos effektek mennek; a „Gyors” mód kézzel kapcsolható be
+  return settings.effects === 'fast';
 }
 
 // Sötét-e most a téma (automatikus módban este 19 és reggel 7 között)
@@ -924,7 +930,12 @@ function tick() {
   const d = new Date();
   // Csak akkor írunk a képernyőre, ha tényleg változott valami (percenként, nem másodpercenként)
   setText('#sb-time', fmtTime(d));
-  setText('#lock-time', fmtTime(d, settings.lockSeconds));
+  // 3.0: az óra két sorban (óra fölött perc), ezért darabonként írjuk ki
+  const lt = fmtTime(d, settings.lockSeconds), lockT = $('#lock-time');
+  if (lockT.dataset.t !== lt) {
+    lockT.dataset.t = lt;
+    lockT.innerHTML = lt.split(':').map(p => `<span>${pad(+p)}</span>`).join('');
+  }
   const minute = fmtTime(d) + settings.clock24;
   if (minute !== tick.lastMinute) {
     tick.lastMinute = minute;

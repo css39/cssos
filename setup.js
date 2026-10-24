@@ -145,12 +145,10 @@ window.addEventListener('load', () => {
 //  Frissítés után: „Újdonságok” ablak (pl. 1.4 → 2.0), az adatok megmaradnak
 // =====================================================================
 const WHATS_NEW = [
-  ['star', 'Ez már online frissítés volt!', 'A 2.2 az internetről érkezett, telepítés nélkül. Így jön majd a 3.0 is.'],
-  ['chevLeft', 'Három kezdőképernyő-oldal', 'Balra a Ma nézet widgetekkel, jobbra az Alkalmazástár.'],
-  ['settings', 'Új vezérlőközpont', 'Zenelejátszó, zseblámpa, energiatakarékos mód, hangerő-csúszka.'],
-  ['lock', 'Widgetek a zárolási képernyőn', 'Időjárás, akkumulátor és a következő esemény.'],
-  ['user', 'Személyes köszönés', 'Add meg a neved: Beállítások → Általános.'],
-  ['update', 'Online frissítés', 'Frissítés az internetről, telepítés nélkül, az adatok megmaradnak.'],
+  ['palette', 'Teljesen új kinézet', 'Üvegfelületek, fényes csepp ikonok, új „mesh” hátterek.'],
+  ['lock', 'Új zárolási képernyő', 'Óriási, két sorba rendezett óra, fölül az óra, alatta a perc.'],
+  ['star', 'Saját betűtípus', 'A CSSOS mostantól mindenhol a saját betűivel jelenik meg.'],
+  ['update', 'Online frissítés', 'Ez a frissítés is az internetről érkezett, telepítés nélkül.'],
 ];
 
 function showWhatsNew(from) {

@@ -167,7 +167,7 @@ const SETTINGS_PAGES = {
       ${sNote('Ennyi idő után kapcsol ki a képernyő, ha nem nyúlsz a telefonhoz.')}
       ${sLabel('Effektek')}
       <div class="group">${sSeg('effects', [['auto', 'Automatikus'], ['high', 'Látványos'], ['fast', 'Gyors']])}</div>
-      ${sNote('A „Gyors” mód elhagyja a homályosított hátteret, így gyengébb telefonon is folyamatosak az animációk. Automatikusan telefonon gyors, számítógépen látványos.')}
+      ${sNote('A „Gyors” mód elhagyja a homályosított hátteret, így gyengébb telefonon is folyamatosak az animációk. Ha akad a telefon, kapcsold be.')}
       <div class="group">
         ${sSw('reduceMotion', 'Animációk csökkentése')}
         ${sLink('access', 'Kisegítő lehetőségek')}

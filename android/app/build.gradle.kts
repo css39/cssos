@@ -15,7 +15,7 @@ val cssosVersionCode: Int = cssosVersion.split(".").let { p ->
 }.coerceAtLeast(2)
 
 val copyCssosWeb by tasks.registering(Copy::class) {
-    from(cssosWebDir) { include("*.html", "*.css", "*.js") }
+    from(cssosWebDir) { include("*.html", "*.css", "*.js", "*.woff2") }
     into(layout.buildDirectory.dir("generated/cssosWeb/cssos"))
 }
 

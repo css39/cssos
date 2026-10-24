@@ -1,1145 +1,626 @@
+/* =====================================================================
+   CSSOS 3.0 — dizájnrendszer
+   Egyetlen, rendezett stíluslap (a 0.1–2.2 közötti rétegek helyett).
+   Arculat: mély „tinta” alapok, erős üveghatás fényes élekkel, Sora betűs
+   kijelzők, csepp alakú, fényes ikonok, rugós mozgás.
+   ===================================================================== */
+
+/* ---------- Betűtípusok (a CSSOS-ba építve, internet nélkül is) ---------- */
+@font-face { font-family: 'Sora'; font-style: normal; font-weight: 300 800; font-display: swap; src: url(sora-latin-ext.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Sora'; font-style: normal; font-weight: 300 800; font-display: swap; src: url(sora-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Figtree'; font-style: normal; font-weight: 400 800; font-display: swap; src: url(figtree-latin-ext.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Figtree'; font-style: normal; font-weight: 400 800; font-display: swap; src: url(figtree-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+
+/* ---------- Alap tokenek ---------- */
+:root {
+  --font-ui: 'Figtree', 'Segoe UI', Roboto, system-ui, sans-serif;
+  --font-display: 'Sora', 'Figtree', 'Segoe UI', system-ui, sans-serif;
+  /* Rugós görbék: kicsit túllendül, majd visszarugózik */
+  --spring: linear(0, 0.009, 0.035 2.1%, 0.141, 0.281 6.7%, 0.723 12.9%, 0.938 16.7%, 1.017, 1.077, 1.121, 1.149 24.3%, 1.159, 1.163, 1.161, 1.154 29.9%, 1.129 32.8%, 1.051 39.6%, 1.017 43.1%, 0.991, 0.977 51%, 0.974 53.8%, 0.975 57.1%, 0.997 69.8%, 1.003 76.9%, 1);
+  --spring-soft: linear(0, 0.006, 0.025 2.8%, 0.101 6.1%, 0.539 18.9%, 0.721 25.3%, 0.849 31.5%, 0.937 38.1%, 0.968 41.8%, 0.991 45.7%, 1.006 50.1%, 1.015 55%, 1.017 63.9%, 1.001 85.9%, 1);
+  --ease-out: cubic-bezier(.2, .9, .25, 1);
+  /* Üveg: erős homályosítás + telítés, fényes él, mély árnyék */
+  --glass-fx: blur(30px) saturate(180%);
+  --glass: rgba(28, 31, 46, .42);
+  --glass-strong: rgba(18, 20, 32, .62);
+  --glass-edge: inset 0 0 0 1px rgba(255, 255, 255, .12), inset 0 1px 0 rgba(255, 255, 255, .18);
+  --lift: 0 18px 40px -16px rgba(0, 0, 0, .6);
+  --brand: conic-gradient(#7f53ac, #2a5298, #38ef7d, #ffd200, #7f53ac);
+}
+@property --ring-p { syntax: '<number>'; inherits: true; initial-value: 100; }
+@property --ring-c { syntax: '<color>'; inherits: true; initial-value: transparent; }
+
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+[hidden] { display: none !important; }
 html, body { height: 100%; }
 body {
-  background: radial-gradient(circle at 50% -10%, #30364a, #0b0d12 70%);
-  color: #fff;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
   overflow: hidden; user-select: none;
+  background: radial-gradient(120% 80% at 50% -10%, #2b3150, #0a0b12 62%), #0a0b12;
+  color: #fff; font-family: var(--font-ui); -webkit-font-smoothing: antialiased;
 }
-button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
-input, textarea { font: inherit; color: inherit; }
-.caption { font-size: 13px; color: #8a90a0; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; touch-action: manipulation; }
+input, textarea, select { font: inherit; color: inherit; }
+.caption { font-size: 13px; color: #8a90a6; letter-spacing: .01em; }
+.ic { display: block; flex: none; }
 
-/* ---------- Telefon váz ---------- */
+/* =====================================================================
+   Telefon váz (gépen)
+   ===================================================================== */
 #phone {
-  position: relative;
-  height: min(844px, calc(100vh - 60px));
-  aspect-ratio: 390 / 844;
-  padding: 12px;
-  background: #0a0a0d;
-  border-radius: 58px;
-  box-shadow: 0 0 0 2px #2a2c33, 0 30px 80px rgba(0,0,0,.6), inset 0 0 0 2px #1a1b20;
+  position: relative; height: min(844px, calc(100vh - 60px)); aspect-ratio: 390 / 844; padding: 11px;
+  border-radius: 60px; background: linear-gradient(145deg, #3a3f4f, #15171f 40%, #2a2e3b 70%, #101218);
+  box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.14), inset 0 0 0 5px #07080c, 0 40px 90px -20px rgba(0,0,0,.85), 0 0 0 1px #000;
 }
-.side-btn { position: absolute; width: 4px; background: #2a2c33; border-radius: 2px; }
-#btn-power { right: -5px; top: 24%; height: 11%; cursor: pointer; }
-#btn-power:active { background: #44464f; }
-#btn-vol-up { left: -5px; top: 21%; height: 7%; }
-#btn-vol-down { left: -5px; top: 30%; height: 7%; }
-
-#screen {
-  position: relative; width: 100%; height: 100%;
-  border-radius: 46px; overflow: hidden;
-  background: var(--wall);
-  --chrome: #fff;
-  --app-bg: #000; --app-fg: #fff; --card: #1c1c1e; --card2: #2c2c2e;
-  --muted: #8e8e93; --sep: #38383a; --accent: #0a84ff; --seg-on: #636366;
-}
-#screen.light {
-  --app-bg: #f2f2f7; --app-fg: #000; --card: #fff; --card2: #e5e5ea;
-  --muted: #6c6c70; --sep: #d1d1d6; --accent: #007aff; --seg-on: #fff;
-}
-#screen.light.app-open:not(.locked):not(.cc-open):not(.dark-app) { --chrome: #000; }
+.side-btn { position: absolute; width: 4px; border-radius: 2px; background: linear-gradient(#4a4f60, #262934); }
+#btn-power { right: -4px; top: 24%; height: 11%; cursor: pointer; }
+#btn-power:active { filter: brightness(1.4); }
+#btn-vol-up { left: -4px; top: 21%; height: 7%; }
+#btn-vol-down { left: -4px; top: 30%; height: 7%; }
 
 @media (max-width: 500px) {
   body { gap: 0; }
-  #phone { height: 100vh; height: 100dvh; width: 100vw; aspect-ratio: auto; padding: 0; border-radius: 0; box-shadow: none; }
-  #screen { border-radius: 0; }
+  #phone { height: 100vh; height: 100dvh; width: 100vw; aspect-ratio: auto; padding: 0; border-radius: 0; box-shadow: none; background: #000; }
+  #screen { border-radius: 0 !important; }
   .side-btn, .caption { display: none; }
 }
+/* Androidon (launcherként) mindig teljes képernyő */
+body.android { gap: 0; }
+body.android #phone { height: 100vh; height: 100dvh; width: 100vw; aspect-ratio: auto; padding: 0; border-radius: 0; box-shadow: none; background: #000; }
+body.android #screen { border-radius: 0; }
+body.android .side-btn, body.android .caption { display: none; }
 
-/* ---------- Rendszer-elemek ---------- */
+/* =====================================================================
+   Kijelző és színtémák
+   ===================================================================== */
+#screen {
+  position: relative; width: 100%; height: 100%; border-radius: 49px; overflow: hidden; isolation: isolate;
+  background: var(--wall); font-size: 15px;
+  --chrome: #fff;
+  --app-bg: #07080d; --app-fg: #f3f4f9;
+  --card: #13151e; --card2: #1f2230; --muted: #8b90a5; --sep: rgba(255,255,255,.07);
+  --seg-on: #3a3e50; --accent: #0a84ff; --row-hi: rgba(255,255,255,.04);
+}
+#screen.light {
+  --app-bg: #f2f3f8; --app-fg: #0b0c13;
+  --card: #fff; --card2: #e8e9f0; --muted: #696d80; --sep: rgba(10,12,30,.08);
+  --seg-on: #fff; --row-hi: rgba(10,12,30,.03);
+}
+#screen.light.app-open:not(.locked):not(.cc-open):not(.dark-app) { --chrome: #000; }
+
+/* =====================================================================
+   Állapotsor, Fénygyűrű, Home csík, rétegek
+   ===================================================================== */
+#statusbar {
+  position: absolute; top: 0; left: 0; right: 0; z-index: 110; height: 54px; padding: 0 30px 0 64px;
+  display: flex; align-items: center; justify-content: space-between; cursor: pointer;
+  font: 600 15px var(--font-display); letter-spacing: -.01em; font-variant-numeric: tabular-nums;
+  color: var(--chrome); transition: color .3s; touch-action: manipulation;
+}
+.sb-right { display: flex; align-items: center; gap: 6px; }
+.sb-right > * { flex: none; }
+#sb-pct { font-size: 12px; }
+#sb-net { font-size: 12px; font-weight: 700; }
+#sb-plane, #sb-alarm { font-size: 13px; }
+.batt { position: relative; width: 25px; height: 12px; padding: 1.5px; border: 1.5px solid currentColor; border-radius: 4px; }
+.batt::after { content: ""; position: absolute; right: -4px; top: 3px; width: 2px; height: 4px; border-radius: 0 1px 1px 0; background: currentColor; }
+.batt i { display: block; height: 100%; width: 100%; border-radius: 1.5px; background: currentColor; }
+
 /* Fénygyűrű: az előlapi kamera a bal felső sarokban, körülötte jelzőgyűrű */
-#cam-ring { position: absolute; top: 14px; left: 22px; width: 28px; height: 28px; z-index: 120; --ring-c: transparent; --ring-p: 100; }
+#cam-ring {
+  position: absolute; top: 14px; left: 22px; z-index: 128; width: 28px; height: 28px; cursor: pointer;
+  --ring-c: transparent; --ring-p: 100;
+  transform: scale(var(--beat, 1));
+  transition: --ring-p .8s var(--spring-soft), --ring-c .45s ease, transform .08s linear;
+}
 #cam-ring::before {
   content: ""; position: absolute; inset: 0; border-radius: 50%;
   background: conic-gradient(var(--ring-c) calc(var(--ring-p) * 1%), rgba(255,255,255,.08) 0);
-  -webkit-mask: radial-gradient(circle, transparent 9.5px, #000 10px);
-  mask: radial-gradient(circle, transparent 9.5px, #000 10px);
-  transition: background .3s;
+  -webkit-mask: radial-gradient(circle, transparent 9.5px, #000 10px); mask: radial-gradient(circle, transparent 9.5px, #000 10px);
 }
-#cam-ring::after {
-  content: ""; position: absolute; inset: 5px; border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #3a4766 0 12%, #0b0d14 38%, #000 70%);
-}
-/* Állapotok — a későbbi szabály erősebb */
+#cam-ring::after { content: ""; position: absolute; inset: 5px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #4a5a80 0 12%, #0b0d14 40%, #000 72%); box-shadow: 0 0 0 1px rgba(255,255,255,.06); }
+/* Jelzések — a lejjebb álló az erősebb (ugyanakkora súlyú szabályok) */
 #screen.ring-low #cam-ring { --ring-c: #ff3b30; }
 #screen.ring-low #cam-ring::before { animation: pulse 2s infinite; }
+#screen.ring-charge:where(.locked) #cam-ring { --ring-c: #34c759; --ring-p: var(--charge-p, 100); }
+#screen.ring-charge:where(.locked) #cam-ring::before { animation: none; }
 #screen.ring-timer #cam-ring { --ring-c: #ff9f0a; }
 #screen.ring-timer #cam-ring::before { animation: none; }
+#screen.ring-music #cam-ring { --ring-c: #bf5af2; --ring-p: 100 !important; filter: drop-shadow(0 0 calc((var(--beat, 1) - 1) * 40px) #bf5af2); }
+#screen.ring-music #cam-ring::before { animation: none; }
+#screen.ring-mic #cam-ring { --ring-c: #ff9f0a; --ring-p: 100 !important; }
+#screen.ring-mic #cam-ring::before { animation: none; }
+#screen.ring-alarm #cam-ring { --ring-c: #ff9f0a; --ring-p: 100 !important; }
+#screen.ring-alarm #cam-ring::before { animation: pulse .6s infinite; }
 #screen.ring-notify #cam-ring { --ring-c: var(--accent); --ring-p: 100 !important; }
 #screen.ring-notify #cam-ring::before { animation: ringFlash 1.4s; }
 #screen.in-call #cam-ring { --ring-c: #34c759; --ring-p: 100 !important; }
 #screen.in-call #cam-ring::before { animation: pulse 1.2s infinite; }
 #screen.ring-cam #cam-ring { --ring-c: #ff3b30; --ring-p: 100 !important; }
 #screen.ring-cam #cam-ring::before { animation: none; }
-#screen.no-ring #cam-ring { --ring-c: transparent !important; }
-#screen.no-ring #cam-ring::before { animation: none !important; }
-@keyframes pulse { 50% { opacity: .3; } }
-@keyframes ringFlash { 0% { opacity: 0; transform: scale(.7); } 25% { opacity: 1; transform: scale(1.2); } 60% { transform: scale(1); } 100% { opacity: 1; } }
-
-#statusbar {
-  position: absolute; top: 0; left: 0; right: 0; height: 54px; padding: 0 30px 0 62px;
-  display: flex; align-items: center; justify-content: space-between;
-  font-size: 15px; font-weight: 600; color: var(--chrome); z-index: 110; cursor: pointer;
-  transition: color .3s; font-variant-numeric: tabular-nums;
-}
-.sb-right { display: flex; align-items: center; gap: 6px; }
-.sb-right > * { flex: none; }
-.batt { width: 25px; height: 12px; border: 1.5px solid currentColor; border-radius: 4px; padding: 1.5px; position: relative; }
-.batt::after { content: ""; position: absolute; right: -4px; top: 3px; width: 2px; height: 4px; background: currentColor; border-radius: 0 1px 1px 0; }
-.batt i { display: block; height: 100%; width: 100%; background: currentColor; border-radius: 1.5px; }
+/* Kikapcsolt gyűrű / energiatakarékos mód: csak a kamera jelzése marad (adatvédelem) */
+#screen:is(.no-ring, .saver):not(.ring-cam) #cam-ring { --ring-c: transparent !important; filter: none; }
+#screen:is(.no-ring, .saver):not(.ring-cam) #cam-ring::before { animation: none !important; }
 
 #homebar {
-  position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
-  width: 180px; height: 26px; z-index: 115; display: flex; align-items: flex-end; justify-content: center;
-  padding-bottom: 8px; cursor: pointer;
+  position: absolute; bottom: 0; left: 50%; z-index: 115; width: 180px; height: 26px; padding-bottom: 8px;
+  display: flex; align-items: flex-end; justify-content: center; transform: translateX(-50%); cursor: pointer; touch-action: manipulation;
 }
-#homebar i { width: 134px; height: 5px; border-radius: 3px; background: var(--chrome); opacity: .9; transition: background .3s; }
+#homebar i { width: 134px; height: 5px; border-radius: 3px; background: var(--chrome); opacity: .92; transition: background .3s; }
 
-#dim { position: absolute; inset: 0; background: #000; pointer-events: none; z-index: 130; opacity: 0; }
-#off { position: absolute; inset: 0; background: #000; z-index: 140; opacity: 0; pointer-events: none; transition: opacity .2s; }
-#screen.off #off { opacity: 1; pointer-events: auto; cursor: pointer; }
-
-#boot {
-  position: absolute; inset: 0; background: #000; z-index: 145;
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
-  transition: opacity .3s;
-}
-#boot.done { opacity: 0; pointer-events: none; }
-.boot-logo {
-  width: 74px; height: 74px; border-radius: 50%;
-  background: conic-gradient(#7f53ac, #2a5298, #38ef7d, #ffd200, #7f53ac);
-  -webkit-mask: radial-gradient(circle, transparent 54%, #000 56%);
-  mask: radial-gradient(circle, transparent 54%, #000 56%);
-  animation: spin 1.4s linear infinite;
-}
-.boot-name { font-size: 24px; font-weight: 600; letter-spacing: 8px; }
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* ---------- Zárolási képernyő ---------- */
-#lock {
-  position: absolute; inset: 0; z-index: 60;
-  background-image: linear-gradient(rgba(0,0,0,.12), rgba(0,0,0,.35)), var(--wall);
-  display: flex; flex-direction: column; align-items: center; padding-top: 70px;
-  transition: transform .28s cubic-bezier(.2,.8,.2,1), opacity .28s; will-change: transform; touch-action: none;
-}
-#lock.hidden { transform: translateY(-100%); opacity: 0; pointer-events: none; }
-.lock-main { display: flex; flex-direction: column; align-items: center; }
-.lock-icon { font-size: 18px; margin-bottom: 10px; }
-.lock-date { font-size: 19px; font-weight: 500; opacity: .9; }
-.lock-time { font-size: 92px; font-weight: 600; letter-spacing: -2px; line-height: 1.05; font-variant-numeric: tabular-nums; }
-.lock-hint {
-  position: absolute; bottom: 40px; font-size: 14px; opacity: .85;
-  display: flex; flex-direction: column; align-items: center; gap: 2px; animation: bob 2s infinite;
-}
-.lock-hint span { font-size: 20px; }
-@keyframes bob { 50% { transform: translateY(-6px); } }
-
-#pin { display: none; flex-direction: column; align-items: center; gap: 22px; margin-top: 40px; }
-#lock.pin-mode { background-image: linear-gradient(rgba(0,0,0,.45), rgba(0,0,0,.6)), var(--wall); }
-#lock.pin-mode .lock-main, #lock.pin-mode .lock-hint { display: none; }
-#lock.pin-mode #pin { display: flex; }
-.pin-title { font-size: 19px; }
-.pin-dots { display: flex; gap: 18px; }
-.pin-dots i { width: 13px; height: 13px; border-radius: 50%; border: 1.5px solid #fff; transition: background .1s; }
-.pin-dots i.on { background: #fff; }
-.pin-dots.shake { animation: shake .4s; }
-@keyframes shake { 20%, 60% { transform: translateX(-10px); } 40%, 80% { transform: translateX(10px); } }
-.pin-keys { display: grid; grid-template-columns: repeat(3, 74px); gap: 16px 22px; margin-top: 10px; }
-.pin-keys button {
-  width: 74px; height: 74px; border-radius: 50%; background: rgba(255,255,255,.18);
-  font-size: 30px; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1;
-}
-.pin-keys button small { font-size: 9px; letter-spacing: 2px; font-weight: 600; }
-.pin-keys button:active { background: rgba(255,255,255,.45); }
-.pin-keys button.ghost { background: none; font-size: 16px; }
-
-/* ---------- Kezdőképernyő ---------- */
-#home {
-  position: absolute; inset: 0; padding: 62px 20px 0;
-  transition: transform .24s cubic-bezier(.2,.85,.25,1), opacity .24s;
-}
-#screen.app-open #home { transform: scale(.92); opacity: .3; }
-#app-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px 8px; justify-items: center; }
-.widget {
-  grid-column: span 4; width: 100%; display: flex; flex-direction: column; gap: 2px;
-  background: rgba(255,255,255,.16); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-  border-radius: 24px; padding: 16px 20px;
-}
-.widget small { font-size: 14px; opacity: .85; }
-.widget b { font-size: 44px; font-weight: 600; line-height: 1.1; font-variant-numeric: tabular-nums; }
-.widget span { font-size: 14px; opacity: .85; }
-.app-icon { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; text-shadow: 0 1px 3px rgba(0,0,0,.4); }
-.app-icon .icon {
-  position: relative; width: 60px; height: 60px; border-radius: 15px;
-  display: flex; align-items: center; justify-content: center; font-size: 31px;
-  box-shadow: 0 4px 12px rgba(0,0,0,.25); transition: transform .1s; text-shadow: none;
-}
-.app-icon:active .icon { transform: scale(.88); }
-.badge {
-  position: absolute; top: -6px; right: -6px; min-width: 22px; height: 22px; border-radius: 11px; padding: 0 6px;
-  background: #ff3b30; color: #fff; font-size: 13px; font-style: normal; font-weight: 600;
-  display: none; align-items: center; justify-content: center;
-}
-.cal-icon { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1; }
-.cal-icon small { font-size: 10px; color: #ff3b30; font-weight: 700; }
-.cal-icon b { font-size: 30px; color: #000; font-weight: 400; }
-#dock {
-  position: absolute; left: 12px; right: 12px; bottom: 24px; height: 90px; border-radius: 32px;
-  background: rgba(255,255,255,.18); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-  display: flex; justify-content: space-around; align-items: center;
-}
-
-/* ---------- Alkalmazásablak ---------- */
-#app-window {
-  position: absolute; inset: 0; z-index: 40;
-  background: var(--app-bg); color: var(--app-fg);
-  transform: scale(.12); opacity: 0; pointer-events: none;
-  transition: transform .24s cubic-bezier(.2,.85,.25,1), opacity .16s; will-change: transform, opacity;
-}
-#app-window.open { transform: none; opacity: 1; pointer-events: auto; }
-#app-window.dark-ui { background: #000; color: #fff; }
-#app-content { position: absolute; inset: 0; padding: 54px 0 30px; overflow-y: auto; overflow-x: hidden; user-select: text; }
-.app-overlay { position: absolute; inset: 0; z-index: 5; }
-
-/* ---------- Vezérlőközpont ---------- */
-#cc {
-  position: absolute; inset: 0; z-index: 100; padding: 70px 22px;
-  background: rgba(0,0,0,.4); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-  opacity: 0; transform: translateY(-30px); pointer-events: none; transition: opacity .18s, transform .18s; will-change: transform, opacity;
-}
-#screen.cc-open #cc { opacity: 1; transform: none; pointer-events: auto; }
-.cc-head { font-size: 14px; opacity: .7; margin: 0 4px 14px; }
-.cc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-.cc-tile {
-  aspect-ratio: 1; border-radius: 20px; background: rgba(255,255,255,.16);
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 22px;
-  transition: background .2s;
-}
-.cc-tile small { font-size: 10px; opacity: .9; }
-.cc-tile.on { background: var(--on, #fff); }
-.cc-slider {
-  grid-column: span 4; display: flex; align-items: center; gap: 12px; font-size: 20px;
-  background: rgba(255,255,255,.16); border-radius: 20px; padding: 16px 18px;
-}
-.cc-slider input { flex: 1; accent-color: #fff; }
-
-/* ---------- Értesítés ---------- */
-#banner {
-  position: absolute; top: 52px; left: 10px; right: 10px; z-index: 105;
-  background: rgba(40,40,45,.8); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-  border-radius: 22px; padding: 12px 14px; display: flex; gap: 12px; align-items: center; color: #fff;
-  transform: translateY(calc(-100% - 70px)); transition: transform .3s cubic-bezier(.2,.9,.3,1.15); cursor: pointer;
-}
-#banner.show { transform: none; }
-.b-icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex: none; overflow: hidden; }
-.b-text { flex: 1; min-width: 0; }
-.b-text b { font-size: 14px; }
-.b-text p { font-size: 13px; opacity: .85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.b-time { font-size: 12px; opacity: .6; align-self: flex-start; }
-
-/* ---------- Közös app UI ---------- */
-.app-title { font-size: 32px; font-weight: 700; padding: 4px 20px 14px; }
-.app-bar { display: flex; align-items: center; justify-content: space-between; padding: 4px 16px 6px; min-height: 40px; }
-.link { color: var(--accent); font-size: 17px; }
-.danger { color: #ff453a !important; }
-.muted { color: var(--muted); }
-.group { margin: 0 16px 22px; background: var(--card); border-radius: 12px; overflow: hidden; }
-.group-label { margin: 0 32px 6px; font-size: 13px; color: var(--muted); text-transform: uppercase; }
-.row {
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  padding: 11px 16px; min-height: 46px; border-bottom: .5px solid var(--sep); font-size: calc(16px * var(--fs, 1));
-}
-.row:last-child { border-bottom: 0; }
-button.row { width: 100%; text-align: left; justify-content: flex-start; }
-.row.col { flex-direction: column; align-items: flex-start; }
-.field { background: transparent; border: 0; outline: 0; text-align: right; color: var(--muted); font-size: 16px; min-width: 0; flex: 1; }
-.switch { width: 51px; height: 31px; border-radius: 16px; background: var(--card2); position: relative; transition: background .15s; flex: none; }
-.switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 27px; height: 27px; border-radius: 50%; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,.25); transition: left .15s; }
-.switch.on { background: #34c759; }
-.switch.on::after { left: 22px; }
-.empty { text-align: center; color: var(--muted); padding: 60px 30px; font-size: 15px; line-height: 1.5; }
-.segmented { display: flex; margin: 0 16px 18px; background: var(--card2); border-radius: 9px; padding: 2px; }
-.segmented button { flex: 1; padding: 6px; border-radius: 7px; font-size: 14px; font-weight: 500; }
-.segmented button.on { background: var(--seg-on); box-shadow: 0 1px 3px rgba(0,0,0,.2); }
-.avatar { width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(#a18cd1, #6a5acd); display: flex; align-items: center; justify-content: center; font-size: 26px; flex: none; }
-.small { font-size: 13px; }
-.mono { font-variant-numeric: tabular-nums; }
-
-/* ---------- Telefon ---------- */
-.dialer { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 16px; gap: 20px; }
-.dial-num { font-size: 36px; min-height: 48px; letter-spacing: 1px; max-width: 90%; overflow: hidden; white-space: nowrap; }
-.keypad, .dial-actions { display: grid; grid-template-columns: repeat(3, 76px); gap: 14px 24px; justify-items: center; align-items: center; }
-.key { width: 76px; height: 76px; border-radius: 50%; background: var(--card2); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 32px; line-height: 1; }
-.key small { font-size: 9px; letter-spacing: 2px; font-weight: 600; margin-top: 2px; min-height: 9px; }
-.key:active { filter: brightness(1.6); }
-.call-btn { width: 76px; height: 76px; border-radius: 50%; background: #34c759; font-size: 30px; color: #fff; }
-.call-btn.end { background: #ff3b30; }
-.call-btn.end span { display: inline-block; transform: rotate(135deg); }
-.del-btn { font-size: 26px; color: var(--muted); }
-.call-screen {
-  position: absolute; inset: 0; background: linear-gradient(#3a3f4b, #16181d); color: #fff;
-  display: flex; flex-direction: column; align-items: center; padding: 110px 20px 50px;
-}
-.call-name { font-size: 34px; font-weight: 500; }
-.call-status { font-size: 17px; opacity: .7; margin-top: 6px; font-variant-numeric: tabular-nums; }
-.call-grid { display: grid; grid-template-columns: repeat(3, 76px); gap: 24px; margin-bottom: 50px; }
-.call-grid button { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 12px; }
-.call-grid button span { width: 76px; height: 76px; border-radius: 50%; background: rgba(255,255,255,.18); display: flex; align-items: center; justify-content: center; font-size: 28px; }
-.call-grid button.on span { background: #fff; }
-
-/* ---------- Üzenetek ---------- */
-.chat { display: flex; flex-direction: column; height: 100%; }
-.chat-head { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 0 0 10px; border-bottom: .5px solid var(--sep); font-size: 12px; }
-.chat-log { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 6px; }
-.bubble { max-width: 76%; padding: 8px 13px; border-radius: 19px; font-size: calc(16px * var(--fs, 1)); line-height: 1.3; overflow-wrap: break-word; }
-.bubble.me { align-self: flex-end; background: var(--accent); color: #fff; border-bottom-right-radius: 6px; }
-.bubble.bot { align-self: flex-start; background: var(--card2); border-bottom-left-radius: 6px; }
-.typing { display: flex; gap: 4px; padding: 12px 14px; }
-.typing span { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); animation: blink 1.2s infinite; }
-.typing span:nth-child(2) { animation-delay: .2s; }
-.typing span:nth-child(3) { animation-delay: .4s; }
-@keyframes blink { 50% { opacity: .25; } }
-.chat-input { display: flex; gap: 8px; padding: 8px 12px 4px; }
-.chat-input input { flex: 1; border: 1px solid var(--sep); background: transparent; border-radius: 20px; padding: 8px 14px; outline: 0; font-size: 16px; min-width: 0; }
-.send { width: 36px; height: 36px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 18px; font-weight: 700; flex: none; }
-
-/* ---------- Számológép ---------- */
-.calc { height: 100%; display: flex; flex-direction: column; justify-content: flex-end; padding: 0 16px 14px; }
-.calc-display { font-size: 76px; font-weight: 300; text-align: right; padding: 0 10px 8px; white-space: nowrap; overflow: hidden; font-variant-numeric: tabular-nums; }
-.calc-keys { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-.ck { aspect-ratio: 1; border-radius: 50%; background: #333; font-size: 30px; font-weight: 500; color: #fff; }
-.ck:active { filter: brightness(1.4); }
-.ck.fn { background: #a5a5a5; color: #000; }
-.ck.op { background: #ff9f0a; font-size: 34px; }
-.ck.op.active { background: #fff; color: #ff9f0a; }
-.ck.zero { grid-column: span 2; aspect-ratio: auto; border-radius: 999px; text-align: left; padding-left: 28px; }
-
-/* ---------- Óra ---------- */
-.analog { width: 210px; height: 210px; border-radius: 50%; background: var(--card); margin: 4px auto 22px; position: relative; box-shadow: inset 0 0 0 2px var(--sep); }
-.analog .num { position: absolute; transform: translate(-50%, -50%); font-size: 16px; font-weight: 600; }
-.analog .hand { position: absolute; left: 50%; bottom: 50%; transform-origin: 50% 100%; border-radius: 3px; background: var(--app-fg); }
-.hand.h { width: 6px; height: 56px; margin-left: -3px; }
-.hand.m { width: 4px; height: 82px; margin-left: -2px; }
-.hand.s { width: 2px; height: 90px; margin-left: -1px; background: #ff9f0a; }
-.analog .dot { position: absolute; left: 50%; top: 50%; width: 12px; height: 12px; margin: -6px; border-radius: 50%; background: #ff9f0a; }
-.city-time { font-size: 26px; font-weight: 300; font-variant-numeric: tabular-nums; }
-.big-num { font-size: 68px; font-weight: 200; text-align: center; font-variant-numeric: tabular-nums; margin: 30px 0; }
-.big-num.hint { font-size: 24px; color: var(--muted); }
-.round-row { display: flex; justify-content: space-between; padding: 0 24px 24px; }
-.round-row.center { justify-content: center; }
-.round-btn { width: 80px; height: 80px; border-radius: 50%; background: var(--card2); font-size: 16px; box-shadow: 0 0 0 3px var(--app-bg), 0 0 0 5px var(--card2); }
-.round-btn:disabled { opacity: .5; cursor: default; }
-.round-btn.green { background: #1d3d24; color: #34c759; box-shadow: 0 0 0 3px var(--app-bg), 0 0 0 5px #1d3d24; }
-.round-btn.red { background: #3d1a18; color: #ff453a; box-shadow: 0 0 0 3px var(--app-bg), 0 0 0 5px #3d1a18; }
-.presets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 0 20px; }
-.preset { background: var(--card); border-radius: 14px; padding: 18px 0; font-size: 16px; font-weight: 600; }
-.preset:active { background: var(--card2); }
-
-/* ---------- Jegyzetek ---------- */
-.note-prev { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.note-prev b, .note-prev small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.note-editor { height: calc(100% - 50px); }
-.note-editor textarea { width: 100%; height: 100%; background: transparent; border: 0; outline: 0; resize: none; padding: 4px 20px; font-size: calc(17px * var(--fs, 1)); line-height: 1.45; }
-
-/* ---------- Kamera és Fotók ---------- */
-.cam { position: absolute; inset: 0; background: #000; display: flex; flex-direction: column; }
-.cam video { flex: 1; width: 100%; min-height: 0; object-fit: cover; transform: scaleX(-1); }
-.cam-msg { flex: 1; display: flex; align-items: center; justify-content: center; text-align: center; padding: 30px; color: #aaa; line-height: 1.5; }
-.cam-bar { height: 150px; display: flex; align-items: center; justify-content: space-around; padding-bottom: 22px; flex: none; }
-.shutter { width: 70px; height: 70px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 4px #000, 0 0 0 7px #fff; }
-.shutter:active { transform: scale(.92); }
-.shutter:disabled { opacity: .4; }
-.cam-thumb { width: 50px; height: 50px; border-radius: 10px; background: #222 center / cover; }
-.cam-flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; transition: opacity .35s; }
-.cam-flash.on { opacity: 1; transition: none; }
-.gal-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
-.gal-grid img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; cursor: pointer; }
-.gal-count { text-align: center; color: var(--muted); font-size: 13px; padding: 14px; }
-.viewer { position: absolute; inset: 0; background: var(--app-bg); display: flex; flex-direction: column; padding-top: 54px; }
-.viewer img { flex: 1; min-height: 0; width: 100%; object-fit: contain; padding-bottom: 30px; }
-
-/* ---------- Naptár ---------- */
-.cal-head { display: flex; justify-content: space-between; align-items: center; padding: 0 20px 12px; }
-.cal-head .link { font-size: 28px; padding: 0 8px; }
-.cal-title { font-size: 24px; cursor: pointer; }
-.cal-title b { color: #ff3b30; }
-.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); padding: 0 10px; text-align: center; }
-.cal-grid .dow { font-size: 12px; color: var(--muted); padding: 6px 0; }
-.cal-grid .d { height: 46px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
-.cal-grid .d span { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
-.cal-grid .d.we { color: var(--muted); }
-.cal-grid .d.today span { background: #ff3b30; color: #fff; font-weight: 600; }
-
-/* ---------- Beállítások ---------- */
-.walls { display: flex; gap: 10px; flex-wrap: wrap; }
-.wall { width: 44px; height: 78px; border-radius: 10px; border: 3px solid transparent; }
-.wall.on { border-color: var(--accent); }
-
-/* ---------- Hangerő kijelző, akkumulátor % ---------- */
-#sb-pct { font-size: 12px; }
-#vol-hud {
-  position: absolute; left: 10px; top: 22%; z-index: 106; width: 44px; padding: 10px 0;
-  display: flex; flex-direction: column; align-items: center; gap: 8px;
-  background: rgba(40,40,45,.8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-  border-radius: 22px; color: #fff; font-size: 16px;
-  transform: translateX(-80px); transition: transform .2s cubic-bezier(.2,.9,.3,1.15);
-}
-#vol-hud.show { transform: none; }
-.vol-track { width: 8px; height: 120px; border-radius: 4px; background: rgba(255,255,255,.25); display: flex; align-items: flex-end; overflow: hidden; }
-.vol-track i { width: 100%; background: #fff; transition: height .2s; }
-
-/* ---------- Animációk csökkentése ---------- */
-#screen.reduce-motion *, #screen.reduce-motion *::before, #screen.reduce-motion *::after {
-  transition-duration: 0s !important; animation-duration: 0s !important;
-}
-
-/* ---------- Beállítások menü ---------- */
-.ri { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex: none; }
-.row .grow { flex: 1; min-width: 0; text-align: left; }
-.chev { color: var(--muted); display: flex; align-items: center; gap: 6px; font-size: 15px; }
-.chev::after { content: "›"; font-size: 22px; line-height: 1; opacity: .7; }
-.group-note { margin: -14px 32px 22px; font-size: 13px; color: var(--muted); line-height: 1.4; }
-.seg-row { padding: 10px 12px; }
-.seg-row .segmented { margin: 0; width: 100%; }
-.range-row { display: flex; align-items: center; gap: 12px; width: 100%; }
-.range-row input { flex: 1; accent-color: var(--accent); }
-.accents { display: flex; gap: 12px; flex-wrap: wrap; }
-.accent { width: 34px; height: 34px; border-radius: 50%; box-shadow: inset 0 0 0 3px var(--card); border: 2px solid transparent; }
-.accent.on { border-color: var(--app-fg); }
-.storage-bar { display: flex; height: 10px; border-radius: 5px; overflow: hidden; background: var(--card2); width: 100%; margin-top: 8px; }
-.storage-bar i { display: block; height: 100%; }
-.legend { display: flex; gap: 14px; font-size: 12px; color: var(--muted); flex-wrap: wrap; margin-top: 8px; }
-.legend b { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; }
-.text-preview { font-size: calc(16px * var(--fs, 1)); line-height: 1.4; }
-
-/* ---------- CSSOS ikonok ---------- */
-.ic { display: block; flex: none; }
-/* A CSSOS „csepp” ikonforma: három lekerekített sarok és egy hegyesebb */
-.app-icon .icon, .b-icon, .ri { border-radius: 50% 50% 50% 18%; }
-.app-icon .icon { font-size: 30px; }
-.app-icon .icon .ic { filter: drop-shadow(0 1px 1.5px rgba(0,0,0,.25)); }
-.b-icon { font-size: 20px; }
-.ri { font-size: 17px; color: #fff; }
-.avatar { color: #fff; }
-.lock-icon { font-size: 20px; }
-#sb-plane { font-size: 14px; }
-.cc-tile .ic { font-size: 24px; }
-.cc-slider .ic { font-size: 22px; }
-.range-row .ic { font-size: 20px; color: var(--muted); }
-#vol-hud .ic { font-size: 18px; }
-.call-btn, .send, .del-btn { display: flex; align-items: center; justify-content: center; }
-.send { font-size: 18px; }
-.send .ic { stroke-width: 2.6; }
-.call-grid button.on span { color: #000; }
-/* A kamera jelzése akkor is látszik, ha a Fénygyűrű ki van kapcsolva (adatvédelem) */
-#screen.no-ring.ring-cam #cam-ring { --ring-c: #ff3b30 !important; }
-
-/* ---------- 0.4: további beállítások ---------- */
-[hidden] { display: none !important; }
-
-/* Kezdőképernyő: ikonforma, ikonméret, oszlopok */
-#app-grid { grid-template-columns: repeat(var(--cols, 4), 1fr); }
-.widget { grid-column: 1 / -1; }
-.app-icon { max-width: 100%; min-width: 0; }
-.app-icon span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.app-icon .icon {
-  width: var(--icon-size, 60px); height: var(--icon-size, 60px);
-  font-size: calc(var(--icon-size, 60px) * .5);
-}
-.app-icon .icon, .b-icon, .ri { border-radius: var(--icon-radius, 50% 50% 50% 18%); }
-.shape-opts { display: flex; gap: 6px; width: 100%; }
-.shape-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 12px; padding: 10px 0; border-radius: 12px; }
-.shape-btn i { width: 38px; height: 38px; display: block; background: linear-gradient(135deg, var(--accent), #5e5ce6); }
-.shape-btn.on { background: var(--card2); font-weight: 600; }
-
-/* Zárolási képernyő */
-.lock-time { font-weight: var(--lock-w, 600); color: var(--lock-c, #fff); }
-#lock.with-sec .lock-time { font-size: 66px; letter-spacing: -1px; }
-#lock-owner {
-  position: absolute; bottom: 96px; left: 28px; right: 28px; text-align: center;
-  font-size: 14px; line-height: 1.4; padding: 10px 14px; border-radius: 16px;
-  background: rgba(0,0,0,.28); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-}
-#lock.pin-mode #lock-owner { display: none; }
-
-/* Mobilnet jelzés */
-#sb-net { font-size: 12px; font-weight: 700; }
-
-/* Szemkímélő mód: meleg színű réteg */
 #warm { position: absolute; inset: 0; z-index: 129; pointer-events: none; background: #ff8a00; mix-blend-mode: multiply; opacity: 0; transition: opacity .4s; }
-
-/* Energiatakarékos mód */
-#screen.saver *, #screen.saver *::before, #screen.saver *::after { transition-duration: 0s !important; animation-duration: 0s !important; }
-#screen.saver:not(.ring-cam) #cam-ring { --ring-c: transparent !important; }
-
-/* Félkövér szöveg */
-#screen.bold-text .row, #screen.bold-text .bubble, #screen.bold-text .app-icon span,
-#screen.bold-text small, #screen.bold-text p, #screen.bold-text input, #screen.bold-text textarea,
-#screen.bold-text .segmented button, #screen.bold-text .group-note, #screen.bold-text .link { font-weight: 700; }
-
-/* Beállítások: keresés, képernyőidő, frissítés */
-.s-search { display: flex; align-items: center; gap: 8px; margin: 0 16px 18px; padding: 8px 12px; border-radius: 12px; background: var(--card2); color: var(--muted); font-size: 18px; }
-.s-search input { flex: 1; background: none; border: 0; outline: 0; font-size: 16px; color: var(--app-fg); min-width: 0; }
-.s-result small { color: var(--muted); font-size: 13px; display: block; }
-.usage-total { font-size: 34px; font-weight: 700; }
-.usage-bar { height: 8px; border-radius: 4px; background: var(--card2); overflow: hidden; width: 100%; margin-top: 6px; }
-.usage-bar i { display: block; height: 100%; border-radius: 4px; background: var(--accent); }
-.usage-app { flex: 1; min-width: 0; }
-.usage-app .top { display: flex; justify-content: space-between; gap: 8px; }
-.update-box { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 26px 16px; text-align: center; }
-.update-logo { width: 64px; height: 64px; border-radius: 50%; background: conic-gradient(#7f53ac, #2a5298, #38ef7d, #ffd200, #7f53ac); -webkit-mask: radial-gradient(circle, transparent 54%, #000 56%); mask: radial-gradient(circle, transparent 54%, #000 56%); }
-.update-logo.spin { animation: spin 1s linear infinite; }
-.batt-big { font-size: 44px; font-weight: 700; }
-
-/* ---------- 0.5: gyorsítás ---------- */
-/* Azonnali reagálás érintésre (nincs várakozás a dupla koppintásra) */
-button, .row, .key, .ck, .app-icon, #homebar, #statusbar { touch-action: manipulation; }
-/* Az app tartalma külön rétegben rajzolódik, nem zavarja a rendszer többi részét */
-#app-content { contain: content; }
-.group { contain: paint; }
-
-/* =====================================================================
-   0.6: „1000x menőbb”
-   ===================================================================== */
-
-/* ---------- Feloldás: kinyílás a Fénygyűrűből + beugró ikonok ---------- */
-#screen.unlocking #home { animation: reveal .6s cubic-bezier(.2,.8,.2,1); }
-@keyframes reveal {
-  from { clip-path: circle(0 at 36px 28px); }
-  to { clip-path: circle(150% at 36px 28px); }
-}
-#screen.unlocking .app-icon, #screen.unlocking .widget { animation: pop .45s cubic-bezier(.2,1.4,.4,1) backwards; animation-delay: calc(var(--i, 0) * 30ms + 80ms); }
-@keyframes pop { from { opacity: 0; transform: scale(.4) translateY(20px); } }
-
-/* ---------- Élő háttérképek ---------- */
-#screen.live-wall, #screen.live-wall #lock { background-size: 400% 400%; animation: wallMove 20s ease-in-out infinite; }
-@keyframes wallMove { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
-.wall { position: relative; background-size: 300% 300% !important; }
-.live-tag { position: absolute; left: 50%; bottom: 5px; transform: translateX(-50%); font-size: 8px; font-weight: 800; letter-spacing: .5px; color: #fff; background: rgba(0,0,0,.35); padding: 1px 4px; border-radius: 4px; }
-
-/* ---------- 3D dőlés ---------- */
-#home { perspective: 900px; }
-#app-grid, #dock { transition: transform .25s ease-out; }
-
-/* ---------- Fénygyűrű: töltés és zene ---------- */
-#screen.ring-charge.locked #cam-ring { --ring-c: #34c759; --ring-p: var(--charge-p, 100); }
-#screen.ring-charge.locked #cam-ring::before { animation: none; }
-#screen.ring-music #cam-ring { --ring-c: #bf5af2; --ring-p: 100 !important; }
-#screen.ring-music #cam-ring::before { animation: pulse .5s infinite; }
-/* Az erősebb jelzések ismét felülírják a fentieket */
-#screen.ring-notify #cam-ring { --ring-c: var(--accent); }
-#screen.ring-notify #cam-ring::before { animation: ringFlash 1.4s; }
-#screen.in-call #cam-ring { --ring-c: #34c759; }
-#screen.in-call #cam-ring::before { animation: pulse 1.2s infinite; }
-#screen.ring-cam #cam-ring { --ring-c: #ff3b30; }
-#screen.ring-cam #cam-ring::before { animation: none; }
-#screen.no-ring:not(.ring-cam) #cam-ring { --ring-c: transparent !important; }
-
-/* ---------- Appváltó ---------- */
-#switcher {
-  position: absolute; inset: 0; z-index: 98; display: flex; flex-direction: column; justify-content: center; gap: 22px;
-  background: rgba(0,0,0,.45); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-  opacity: 0; pointer-events: none; transition: opacity .2s;
-}
-#screen.switcher-open #switcher { opacity: 1; pointer-events: auto; }
-.sw-cards { display: flex; gap: 16px; overflow-x: auto; padding: 20px 19%; scroll-snap-type: x mandatory; scrollbar-width: none; }
-.sw-cards::-webkit-scrollbar { display: none; }
-.sw-card { flex: none; width: 62%; scroll-snap-align: center; transition: transform .25s, opacity .25s; touch-action: pan-x; cursor: pointer; }
-#screen.switcher-open .sw-card { animation: cardIn .3s cubic-bezier(.2,.9,.3,1.1) backwards; }
-@keyframes cardIn { from { transform: scale(1.3); opacity: 0; } }
-.sw-label { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; margin-bottom: 8px; color: #fff; }
-.sw-label .ri { width: 26px; height: 26px; font-size: 15px; }
-.sw-shot { aspect-ratio: 9 / 17; border-radius: 28px; display: flex; align-items: center; justify-content: center; font-size: 70px; box-shadow: 0 20px 50px rgba(0,0,0,.5); }
-.sw-clear { align-self: center; color: #fff; background: rgba(255,255,255,.18); padding: 10px 20px; border-radius: 20px; font-size: 14px; font-weight: 600; }
-.sw-empty { text-align: center; color: rgba(255,255,255,.75); font-size: 16px; }
-
-/* ---------- Zene ---------- */
-.music { display: flex; flex-direction: column; align-items: center; padding: 6px 20px 0; gap: 6px; }
-.m-art {
-  width: 210px; height: 210px; border-radius: 50%; position: relative; margin: 8px 0 14px; flex: none;
-  background: conic-gradient(var(--c1), var(--c2), var(--c1)); box-shadow: 0 20px 50px rgba(0,0,0,.45);
-  display: flex; align-items: center; justify-content: center;
-}
-.m-art.playing { animation: spin 6s linear infinite; }
-.m-art::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: repeating-radial-gradient(circle, rgba(0,0,0,.12) 0 2px, transparent 2px 6px); }
-.m-disc { width: 64px; height: 64px; border-radius: 50%; background: var(--app-bg); display: flex; align-items: center; justify-content: center; font-size: 28px; color: var(--app-fg); z-index: 1; }
-.m-title { font-size: 22px; font-weight: 700; }
-.m-sub { font-size: 15px; }
-.m-viz { width: 100%; height: 56px; margin-top: 6px; }
-.m-progress { width: 100%; height: 5px; border-radius: 3px; background: var(--card2); overflow: hidden; }
-.m-progress i { display: block; height: 100%; background: var(--app-fg); transition: width .15s linear; }
-.m-controls { display: flex; align-items: center; gap: 34px; margin: 10px 0 16px; font-size: 32px; }
-.m-play { width: 72px; height: 72px; border-radius: 50%; background: var(--app-fg); color: var(--app-bg); display: flex; align-items: center; justify-content: center; font-size: 30px; }
-.m-play:active, .m-prev:active, .m-next:active { transform: scale(.9); }
-.m-list { width: 100%; margin: 0 0 20px; }
-.m-list .row.on { color: var(--accent); }
-.m-dot { width: 34px; height: 34px; border-radius: var(--icon-radius); flex: none; }
-
-/* ---------- Kígyó ---------- */
-.game { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 6px 16px 0; }
-.game-top { width: 100%; display: flex; justify-content: space-between; font-size: 17px; }
-.game-board { position: relative; width: 100%; display: flex; justify-content: center; }
-.game-board canvas { border-radius: 18px; touch-action: none; box-shadow: 0 0 0 1px rgba(255,255,255,.08), 0 20px 50px rgba(0,0,0,.6); }
-.game-msg {
-  position: absolute; inset: 0; margin: auto; width: min(100%, 330px); border-radius: 18px;
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; text-align: center; padding: 24px;
-  background: rgba(13,15,23,.82); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-}
-.game-msg b { font-size: 28px; background: linear-gradient(90deg, #7f5af0, #2cb67d); -webkit-background-clip: text; background-clip: text; color: transparent; }
-.btn { background: var(--accent); color: #fff; border-radius: 14px; padding: 12px 24px; font-weight: 700; font-size: 16px; }
-.dpad { display: grid; grid-template-columns: repeat(3, 62px); grid-template-rows: repeat(3, 52px); gap: 6px; }
-.dpad button { border-radius: 16px; background: #1f2230; font-size: 26px; display: flex; align-items: center; justify-content: center; color: #fff; }
-.dpad button:active { background: #7f5af0; }
-
-/* ---------- Rajz ---------- */
-.paint { display: flex; flex-direction: column; height: 100%; }
-.paint .app-bar b { font-size: 17px; }
-.paint-wrap { flex: 1; min-height: 0; margin: 0 12px; border-radius: 18px; overflow: hidden; box-shadow: 0 0 0 1px var(--sep); }
-.paint-wrap canvas { display: block; touch-action: none; cursor: crosshair; }
-.paint-tools { display: flex; align-items: center; gap: 10px; padding: 12px 14px 4px; }
-.p-undo { font-size: 22px; width: 40px; height: 40px; border-radius: 50%; background: var(--card2); display: flex; align-items: center; justify-content: center; flex: none; }
-.paint-colors { display: flex; gap: 6px; flex: 1; justify-content: space-between; }
-.pc { width: 30px; height: 30px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(128,128,128,.4); transition: transform .1s; }
-.pc.on { transform: scale(1.2); box-shadow: 0 0 0 2px var(--app-bg), 0 0 0 4px var(--app-fg); }
-.paint-size { display: flex; align-items: center; gap: 12px; padding: 6px 18px 4px; }
-.paint-size input { flex: 1; accent-color: var(--accent); }
-.p-dot { display: block; border-radius: 50%; flex: none; max-width: 36px; max-height: 36px; box-shadow: 0 0 0 1px rgba(128,128,128,.4); }
-/* Futó időzítő erősebb, mint a töltés jelzése */
-#screen.ring-timer:not(.ring-music):not(.ring-notify):not(.in-call):not(.ring-cam) #cam-ring { --ring-c: #ff9f0a; }
-
-/* =====================================================================
-   0.7: Áruház és letölthető appok
-   ===================================================================== */
-/* Sok app esetén a kezdőképernyő görgethető */
-#app-grid { max-height: calc(100% - 130px); overflow-y: auto; scrollbar-width: none; padding-bottom: 10px; }
-#app-grid::-webkit-scrollbar { display: none; }
-
-/* ---------- Áruház ---------- */
-.st-hero {
-  position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; text-align: left;
-  margin: 0 16px 18px; width: calc(100% - 32px); padding: 20px; min-height: 150px; border-radius: 22px; color: #fff; overflow: hidden;
-  box-shadow: 0 14px 30px rgba(0,0,0,.3);
-}
-.st-hero small { font-size: 11px; font-weight: 800; letter-spacing: 1px; opacity: .85; }
-.st-hero b { font-size: 28px; }
-.st-hero span { font-size: 14px; opacity: .9; max-width: 62%; line-height: 1.35; }
-.st-hero .st-hero-icon { position: absolute; right: -14px; bottom: -18px; font-size: 130px; opacity: .3; max-width: none; transform: rotate(-12deg); }
-.st-row { gap: 10px; }
-.st-info { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; text-align: left; }
-.st-info b { display: block; font-size: 16px; }
-.st-info small { font-size: 13px; }
-.st-icon { width: 48px; height: 48px; border-radius: var(--icon-radius); display: flex; align-items: center; justify-content: center; font-size: 25px; flex: none; }
-.st-icon.big { width: 96px; height: 96px; font-size: 50px; box-shadow: 0 10px 24px rgba(0,0,0,.3); }
-.st-btn { min-width: 86px; height: 32px; padding: 0 14px; border-radius: 16px; font-size: 14px; font-weight: 700; flex: none; }
-.st-btn.get { background: var(--accent); color: #fff; }
-.st-btn.open { background: var(--card2); color: var(--accent); }
-.st-btn.busy { min-width: 32px; width: 32px; padding: 0; border-radius: 50%; background: conic-gradient(var(--accent) calc(var(--p, 0) * 1%), var(--card2) 0); display: flex; align-items: center; justify-content: center; }
-.st-btn.busy i { width: 24px; height: 24px; border-radius: 50%; background: var(--card); position: relative; }
-.st-btn.busy i::after { content: ""; position: absolute; inset: 8px; border-radius: 2px; background: var(--accent); }
-.st-detail { position: absolute; inset: 0; background: var(--app-bg); color: var(--app-fg); padding-top: 54px; overflow-y: auto; }
-.st-head { display: flex; gap: 18px; padding: 8px 20px 18px; align-items: center; }
-.st-head b { display: block; font-size: 24px; }
-.st-actions { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
-.st-del { width: 32px; height: 32px; border-radius: 50%; background: var(--card2); color: #ff453a; font-size: 17px; display: flex; align-items: center; justify-content: center; }
-.st-facts { display: flex; margin: 0 16px 20px; border-top: .5px solid var(--sep); border-bottom: .5px solid var(--sep); }
-.st-facts div { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 12px 4px; }
-.st-facts div + div { border-left: .5px solid var(--sep); }
-.st-facts small { font-size: 10px; color: var(--muted); font-weight: 700; letter-spacing: .5px; }
-.st-facts b { font-size: 15px; }
-.st-desc { margin: 0 32px 30px; font-size: calc(15px * var(--fs, 1)); line-height: 1.5; }
-
-/* ---------- Zseblámpa ---------- */
-.torch { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; background: #000; transition: background .25s; }
-.torch.on { background: #fff; }
-.torch-btn { width: 120px; height: 120px; border-radius: 50%; background: #1c1c1e; color: #fff; font-size: 54px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 6px #2c2c2e; transition: .25s; }
-.torch.on .torch-btn { background: #ffd60a; color: #4a3000; box-shadow: 0 0 0 6px #ffe680, 0 0 80px #ffd60a; }
-.torch.on .torch-status { color: #555; }
-
-/* ---------- Dobókocka ---------- */
-.dice-area { display: flex; justify-content: center; gap: 24px; margin: 40px 0 18px; cursor: pointer; }
-.die { width: 110px; height: 110px; border-radius: 24px; background: linear-gradient(145deg, #fff, #e6e6ea); display: grid; grid-template-columns: repeat(3, 1fr); padding: 14px; gap: 4px; box-shadow: 0 14px 30px rgba(0,0,0,.35), inset 0 -4px 0 rgba(0,0,0,.08); }
-.die i { border-radius: 50%; margin: 4px; }
-.die i.on { background: #1c1c1e; }
-.dice-area.rolling .die { animation: shake .14s infinite; }
-.dice-total { text-align: center; font-size: 22px; font-weight: 700; min-height: 30px; }
-.dice-go { display: flex; justify-content: center; margin: 22px 0; }
-
-/* ---------- Memória ---------- */
-.mem-top { display: flex; justify-content: space-between; padding: 0 20px 14px; font-size: 16px; }
-.mem-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 0 16px; perspective: 800px; }
-.mem-card { aspect-ratio: 1; position: relative; transform-style: preserve-3d; transition: transform .35s; }
-.mem-card.up { transform: rotateY(180deg); }
-.mem-card span { position: absolute; inset: 0; border-radius: 16px; display: flex; align-items: center; justify-content: center; backface-visibility: hidden; -webkit-backface-visibility: hidden; font-size: 30px; }
-.mem-back { background: linear-gradient(135deg, #43e97b, #38a3f9); color: rgba(255,255,255,.6); font-size: 22px !important; }
-.mem-front { background: var(--card); transform: rotateY(180deg); box-shadow: inset 0 0 0 1px var(--sep); }
-.mem-card.done .mem-front { box-shadow: inset 0 0 0 3px #34c759; }
-
-/* ---------- Átváltó ---------- */
-.conv { position: relative; }
-.conv .row { min-height: 72px; }
-.conv-in, .conv-out { flex: 1; min-width: 0; font-size: 30px; font-weight: 600; background: none; border: 0; outline: 0; color: var(--app-fg); }
-.conv select { font-size: 16px; color: var(--accent); background: var(--card2); border: 0; border-radius: 10px; padding: 8px 10px; outline: 0; }
-.conv-swap { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) rotate(90deg); width: 38px; height: 38px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 18px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 4px var(--card); }
-
-/* ---------- Iránytű ---------- */
-.compass { display: flex; flex-direction: column; align-items: center; padding-top: 20px; }
-.cmp-deg { font-size: 56px; font-weight: 200; }
-.cmp-dir { font-size: 18px; margin-bottom: 26px; }
-.cmp-rose { position: relative; width: 270px; height: 270px; }
-.cmp-dial { position: absolute; inset: 0; border-radius: 50%; border: 2px solid #3a3a3c; transition: transform .2s linear; }
-.cmp-dial i { position: absolute; left: 50%; top: 0; width: 2px; height: 50%; margin-left: -1px; transform-origin: 50% 100%; }
-.cmp-dial i::before { content: ""; display: block; width: 2px; height: 12px; background: #636366; }
-.cmp-dial b { position: absolute; font-size: 22px; font-weight: 700; transform: translate(-50%, -50%); }
-.cmp-dial .n { left: 50%; top: 13%; color: #ff453a; }
-.cmp-dial .e { left: 87%; top: 50%; }
-.cmp-dial .s { left: 50%; top: 87%; }
-.cmp-dial .w { left: 13%; top: 50%; }
-.cmp-needle { position: absolute; left: 50%; top: -14px; width: 4px; height: 30px; margin-left: -2px; border-radius: 2px; background: #ff453a; }
-.cmp-msg { text-align: center; padding: 22px 30px 10px; line-height: 1.5; font-size: 14px; }
-
-/* ---------- Amőba ---------- */
-.ttt-status { text-align: center; font-size: 20px; font-weight: 700; margin-bottom: 18px; }
-.ttt-board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 280px; margin: 0 auto; }
-.ttt-cell { aspect-ratio: 1; border-radius: 20px; background: var(--card); display: flex; align-items: center; justify-content: center; font-size: 56px; color: #ff375f; transition: background .2s; }
-.ttt-cell .ic { stroke-width: 3; }
-.ttt-o { width: 54%; height: 54%; border-radius: 50%; border: 7px solid #0a84ff; }
-.ttt-cell.win { background: color-mix(in srgb, #34c759 35%, var(--card)); }
-.ttt-score { text-align: center; margin-top: 16px; font-size: 14px; }
-
-/* =====================================================================
-   0.8: Android
-   ===================================================================== */
-/* Igazi Android-app ikonja a CSSOS csepp formájára vágva */
-.aicon { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
-.sw-shot .aicon { width: 42%; height: auto; border-radius: var(--icon-radius); }
-.st-hero.st-play { background: linear-gradient(135deg, #1a73e8, #34a853); }
-
-/* Androidon (launcherként) mindig teljes képernyő, telefonkeret nélkül */
-body.android { gap: 0; }
-body.android #phone { height: 100vh; height: 100dvh; width: 100vw; aspect-ratio: auto; padding: 0; border-radius: 0; box-shadow: none; }
-body.android #screen { border-radius: 0; }
-body.android .side-btn, body.android .caption { display: none; }
-
-/* =====================================================================
-   0.9: még menőbb
-   ===================================================================== */
-
-/* ---------- Értesítés a Fénygyűrűből pattan ki ---------- */
-#banner {
-  transform-origin: 26px -24px; transform: scale(.06); opacity: 0;
-  transition: transform .5s cubic-bezier(.2,1.25,.35,1), opacity .18s;
-}
-#banner.show { transform: none; opacity: 1; }
-
-/* Az asszisztens többsoros válaszai */
-.bubble, .spot-answer { white-space: pre-line; }
-
-/* ---------- Kereső gomb és kereső ---------- */
-#app-grid { max-height: calc(100% - 178px); }
-#spot-pill {
-  position: absolute; left: 50%; bottom: 128px; transform: translateX(-50%);
-  display: flex; align-items: center; gap: 6px; padding: 7px 16px; border-radius: 18px;
-  font-size: 13px; font-weight: 600; color: #fff;
-  background: rgba(255,255,255,.18); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-}
-#spot-pill .ic { font-size: 15px; }
-#spot {
-  position: absolute; inset: 0; z-index: 97; padding: 60px 16px 30px; overflow-y: auto;
-  background: rgba(10,12,20,.55); backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px); color: #fff;
-  opacity: 0; transform: translateY(-24px); pointer-events: none; transition: opacity .2s, transform .2s;
-}
-#screen.spot-open #spot { opacity: 1; transform: none; pointer-events: auto; }
-.spot-bar { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,.16); border-radius: 14px; padding: 10px 14px; font-size: 18px; }
-.spot-bar input { flex: 1; min-width: 0; background: none; border: 0; outline: 0; font-size: 17px; color: #fff; }
-.spot-bar input::placeholder { color: rgba(255,255,255,.55); }
-.spot-x { font-size: 15px; color: #fff; opacity: .85; }
-.spot-label { font-size: 13px; font-weight: 700; opacity: .7; margin: 20px 4px 8px; text-transform: uppercase; letter-spacing: .4px; }
-.spot-apps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px 6px; }
-.spot-app { display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 0; }
-.spot-app .icon { width: 54px; height: 54px; border-radius: var(--icon-radius); display: flex; align-items: center; justify-content: center; font-size: 27px; overflow: hidden; }
-.spot-app small { font-size: 11px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.spot-row { width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 14px; background: rgba(255,255,255,.1); margin-bottom: 6px; text-align: left; font-size: 15px; color: #fff; }
-.spot-row small { display: block; font-size: 12px; opacity: .65; }
-.spot-row .ri { width: 32px; height: 32px; font-size: 17px; }
-.spot-answer { background: linear-gradient(135deg, rgba(161,140,209,.35), rgba(106,90,205,.35)); border-radius: 14px; padding: 12px 14px; font-size: 15px; line-height: 1.45; margin-bottom: 6px; animation: pop .35s cubic-bezier(.2,1.4,.4,1); }
-.spot-tip { font-size: 14px; line-height: 1.5; opacity: .85; padding: 0 4px; }
-
-/* ---------- Zene-widget ---------- */
-.mwidget {
-  grid-column: 1 / -1; width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px 14px; color: #fff; cursor: pointer;
-  background: rgba(255,255,255,.16); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-radius: 22px;
-}
-.lock-mw { width: calc(100% - 40px); margin-top: 26px; background: rgba(0,0,0,.28); }
-.mw-art { width: 46px; height: 46px; border-radius: 50%; flex: none; background: conic-gradient(var(--c1, #7f53ac), var(--c2, #38ef7d), var(--c1, #7f53ac)); position: relative; }
-.mw-art::after { content: ""; position: absolute; inset: 17px; border-radius: 50%; background: rgba(0,0,0,.55); }
-.mw-art.playing { animation: spin 4s linear infinite; }
-.mw-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.mw-text b { font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.mw-text span { font-size: 12px; opacity: .75; }
-.mw-bar { height: 3px; border-radius: 2px; background: rgba(255,255,255,.25); margin-top: 5px; overflow: hidden; }
-.mw-bar i { display: block; height: 100%; background: #fff; transition: width .2s linear; }
-.mw-btns { display: flex; align-items: center; gap: 4px; font-size: 22px; }
-.mw-btns button { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: #fff; }
-.mw-btns button:active { background: rgba(255,255,255,.2); }
-
-/* ---------- Konfetti ---------- */
+#dim { position: absolute; inset: 0; z-index: 130; pointer-events: none; background: #000; opacity: 0; }
+#off { position: absolute; inset: 0; z-index: 140; pointer-events: none; background: #000; opacity: 0; transition: opacity .2s; }
+#screen.off #off { opacity: 1; pointer-events: auto; cursor: pointer; }
 .confetti { position: absolute; inset: 0; z-index: 131; pointer-events: none; }
 
-/* ---------- Töltés-animáció ---------- */
-.charge-anim {
-  position: absolute; inset: 0; z-index: 132; pointer-events: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
-  background: rgba(0,0,0,.6); color: #fff; animation: fadeIn .3s; transition: opacity .45s;
+/* ---------- Indulás ---------- */
+#boot {
+  position: absolute; inset: 0; z-index: 145; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;
+  background: radial-gradient(60% 40% at 50% 50%, #141833, #000);
 }
-.charge-anim.out { opacity: 0; }
-@keyframes fadeIn { from { opacity: 0; } }
-.ca-ring {
-  width: 190px; height: 190px; border-radius: 50%; padding: 10px; position: relative;
-  background: conic-gradient(#34c759 calc(var(--p) * 1%), rgba(255,255,255,.12) 0);
-  box-shadow: 0 0 60px rgba(52,199,89,.55); animation: caGrow .6s cubic-bezier(.2,1.3,.4,1);
+.boot-logo {
+  width: 78px; height: 78px; border-radius: 50%; background: var(--brand);
+  -webkit-mask: radial-gradient(circle, transparent 54%, #000 56%); mask: radial-gradient(circle, transparent 54%, #000 56%);
+  filter: drop-shadow(0 0 24px rgba(127, 83, 172, .7));
+  animation: bootIn .8s var(--spring) both, spin 1.4s linear infinite;
 }
-@keyframes caGrow { from { transform: scale(.3); } }
-.ca-in { width: 100%; height: 100%; border-radius: 50%; background: #0b0d12; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
-.ca-in .ic { font-size: 40px; color: #34c759; animation: pulse 1s infinite; }
-.ca-in b { font-size: 36px; font-weight: 700; }
-.charge-anim > span { font-size: 16px; opacity: .85; }
-
-/* =====================================================================
-   1.0: rendes telefon-funkciók
-   ===================================================================== */
-#sb-alarm { font-size: 13px; }
-
-/* ---------- Értesítési központ ---------- */
-#nc {
-  position: absolute; inset: 0; z-index: 100; padding: 60px 14px 40px; overflow-y: auto; color: #fff;
-  background: rgba(10,12,20,.5); backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px);
-  opacity: 0; transform: translateY(-30px); pointer-events: none; transition: opacity .2s, transform .2s;
-}
-#screen.nc-open #nc { opacity: 1; transform: none; pointer-events: auto; }
-.nc-head { display: flex; flex-direction: column; align-items: center; margin: 10px 0 20px; pointer-events: none; }
-.nc-head b { font-size: 60px; font-weight: 600; line-height: 1.05; font-variant-numeric: tabular-nums; }
-.nc-head span { font-size: 15px; opacity: .85; }
-.nc-bar { display: flex; justify-content: space-between; align-items: center; margin: 0 6px 10px; font-size: 18px; font-weight: 700; }
-.nc-clear { font-size: 13px; font-weight: 600; color: #fff; background: rgba(255,255,255,.18); padding: 6px 12px; border-radius: 14px; }
-.nc-empty { text-align: center; opacity: .7; padding: 40px 0; }
-.nc-card {
-  display: flex; gap: 12px; align-items: center; padding: 12px 12px 12px 14px; margin-bottom: 8px; border-radius: 20px; cursor: pointer;
-  background: rgba(40,40,45,.72); color: #fff; animation: pop .3s cubic-bezier(.2,1.3,.4,1) backwards;
-}
-.nc-card .b-icon { width: 36px; height: 36px; font-size: 19px; }
-.nc-x { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; color: inherit; opacity: .6; flex: none; }
-.nc-x:hover { opacity: 1; background: rgba(128,128,128,.25); }
-#lock-notifs { width: calc(100% - 32px); margin-top: 14px; display: flex; flex-direction: column; }
-#lock.pin-mode #lock-notifs, #lock.pin-mode .lock-mw { display: none; }
-
-/* ---------- Telefon: fülek, névjegyek ---------- */
-.ph { display: flex; flex-direction: column; height: 100%; }
-.ph-body { flex: 1; min-height: 0; overflow-y: auto; position: relative; }
-.ph-body .dialer { height: 100%; }
-.tabbar { display: flex; border-top: .5px solid var(--sep); padding-top: 6px; flex: none; }
-.tabbar button { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; color: var(--muted); }
-.tabbar button .ic { font-size: 24px; }
-.tabbar button.on { color: var(--accent); }
-.dial-name { min-height: 20px; margin-top: -14px; font-size: 15px; }
-.dial-add { font-size: 26px; display: flex; align-items: center; justify-content: center; }
-.ct-row { gap: 12px; }
-.ct-row .grow b { display: block; font-size: 16px; font-weight: 600; }
-.ct-row .grow small { font-size: 13px; }
-.ct-av { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; color: #fff; flex: none; }
-.ct-av.big { width: 96px; height: 96px; font-size: 36px; }
-.ct-star { color: #ffd60a; font-size: 16px; }
-.ct-star .ic { fill: currentColor; }
-.ct-head { display: flex; flex-direction: column; align-items: center; gap: 6px; margin: 4px 0 20px; }
-.ct-head b { font-size: 26px; }
-.ct-actions { display: flex; gap: 10px; margin: 0 16px 22px; }
-.ct-act { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 0; border-radius: 14px; background: var(--card); color: var(--accent); font-size: 12px; font-weight: 600; }
-.ct-act span { font-size: 22px; }
-.ct-act.on { color: #ffd60a; }
-.ct-act.on .ic { fill: currentColor; }
-.call-screen .ct-av.big { margin-bottom: 14px; }
-.app-bar b { font-size: 17px; }
-
-/* ---------- Ébresztő ---------- */
-.segmented button { white-space: nowrap; font-size: 13px; }
-.al-top { display: flex; justify-content: center; margin-bottom: 16px; }
-.al-top .btn { display: inline-flex; align-items: center; gap: 6px; }
-.al-row { cursor: pointer; }
-.al-info { display: flex; flex-direction: column; }
-.al-time { font-size: 40px; font-weight: 300; line-height: 1.1; font-variant-numeric: tabular-nums; }
-.al-time.off { opacity: .4; }
-.al-time-row { justify-content: center; }
-.al-time-in { font-size: 44px; font-weight: 300; background: none; border: 0; outline: 0; color: var(--app-fg); text-align: center; color-scheme: dark; }
-#screen.light .al-time-in { color-scheme: light; }
-.al-days { display: flex; gap: 6px; width: 100%; margin-top: 6px; }
-.al-day { flex: 1; height: 38px; border-radius: 50%; background: var(--card2); font-size: 12px; font-weight: 700; }
-.al-day.on { background: var(--accent); color: #fff; }
-.alarm-ring {
-  position: absolute; inset: 0; z-index: 139; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: #fff;
-  background: radial-gradient(circle at 50% 35%, #ff9f0a55, transparent 60%), linear-gradient(170deg, #1a1a2e, #000);
-  animation: fadeIn .3s;
-}
-.ar-pulse { width: 110px; height: 110px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 56px; background: #ff9f0a; color: #000; margin-bottom: 18px; animation: alarmPulse 1.3s infinite; }
-@keyframes alarmPulse { 0% { box-shadow: 0 0 0 0 #ff9f0aaa; } 70% { box-shadow: 0 0 0 40px #ff9f0a00; } 100% { box-shadow: 0 0 0 0 #ff9f0a00; } }
-.alarm-ring small { font-size: 16px; opacity: .75; }
-.alarm-ring b { font-size: 80px; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; }
-.alarm-ring > span { font-size: 18px; min-height: 24px; }
-.ar-btns { display: flex; flex-direction: column; gap: 12px; width: 70%; margin-top: 50px; }
-.ar-btns button { padding: 16px; border-radius: 30px; font-size: 17px; font-weight: 700; color: #fff; }
-.ar-snooze { background: rgba(255,255,255,.18); }
-.ar-stop { background: #ff9f0a; color: #000 !important; }
-#screen.ring-alarm #cam-ring { --ring-c: #ff9f0a; --ring-p: 100 !important; }
-#screen.ring-alarm #cam-ring::before { animation: pulse .6s infinite; }
-#screen.ring-mic #cam-ring { --ring-c: #ff9f0a; --ring-p: 100 !important; }
-#screen.ring-mic #cam-ring::before { animation: none; }
-
-/* ---------- Naptár események ---------- */
-.cal-grid .d { position: relative; flex-direction: column; color: inherit; }
-.cal-grid .d i { position: absolute; bottom: 3px; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
-.cal-grid .d.sel:not(.today) span { background: var(--card2); font-weight: 700; }
-.ev-row { gap: 12px; }
-.ev-time { width: 76px; flex: none; font-weight: 600; color: var(--accent); font-size: 14px; }
-.ev-empty { width: 100%; text-align: left; }
-.field[type="date"], .field[type="time"] { color-scheme: dark; }
-#screen.light .field[type="date"], #screen.light .field[type="time"] { color-scheme: light; }
-
-/* ---------- Időjárás ---------- */
-.wx { position: absolute; inset: 0; overflow-y: auto; padding: 54px 16px 30px; color: #fff; }
-.wx-msg { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; text-align: center; font-size: 16px; }
-.wx-msg > .ic { font-size: 60px; }
-.wx-spin { width: 40px; height: 40px; border-radius: 50%; border: 4px solid rgba(255,255,255,.3); border-top-color: #fff; animation: spin 1s linear infinite; }
-.wx-top { display: flex; justify-content: flex-end; gap: 8px; }
-.wx-btn { width: 38px; height: 38px; border-radius: 50%; background: rgba(255,255,255,.18); display: flex; align-items: center; justify-content: center; font-size: 18px; color: #fff; }
-.wx-now { display: flex; flex-direction: column; align-items: center; margin: 0 0 22px; text-shadow: 0 1px 8px rgba(0,0,0,.15); }
-.wx-city { font-size: 30px; font-weight: 500; }
-.wx-temp { font-size: 96px; font-weight: 200; line-height: 1; margin-left: 24px; }
-.wx-desc { display: flex; align-items: center; gap: 6px; font-size: 18px; font-weight: 600; }
-.wx-hl { font-size: 16px; opacity: .9; margin-top: 2px; }
-.wx-card { background: rgba(255,255,255,.14); border-radius: 18px; padding: 12px 14px; margin-bottom: 12px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
-.wx-label { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; letter-spacing: .5px; opacity: .7; margin-bottom: 8px; }
-.wx-hours { display: flex; gap: 16px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
-.wx-hours::-webkit-scrollbar { display: none; }
-.wx-hours div { display: flex; flex-direction: column; align-items: center; gap: 8px; flex: none; font-size: 22px; }
-.wx-hours small { font-size: 13px; font-weight: 600; }
-.wx-hours b { font-size: 17px; }
-.wx-day { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-top: .5px solid rgba(255,255,255,.2); font-size: 17px; }
-.wx-label + .wx-day { border-top: 0; }
-.wx-dname { width: 42px; font-weight: 600; }
-.wx-dicon { width: 44px; display: flex; flex-direction: column; align-items: center; font-size: 22px; }
-.wx-dicon small { font-size: 10px; color: #8fd3ff; font-weight: 700; }
-.wx-min { width: 34px; text-align: right; opacity: .7; }
-.wx-max { width: 34px; }
-.wx-range { flex: 1; height: 5px; border-radius: 3px; background: rgba(0,0,0,.2); position: relative; }
-.wx-range i { position: absolute; top: 0; bottom: 0; border-radius: 3px; background: linear-gradient(90deg, #8fd3ff, #ffd60a, #ff9f0a); }
-.wx-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
-.wx-grid .wx-card b { font-size: 28px; font-weight: 500; }
-.wx-grid .wx-card small { display: block; font-size: 12px; opacity: .8; margin-top: 4px; }
-.wx-src { text-align: center; font-size: 11px; opacity: .6; }
-.wx-find { position: absolute; inset: 0; padding: 60px 16px; background: rgba(10,12,20,.92); color: #fff; overflow-y: auto; }
-.wf-res { margin-top: 14px; }
-
-/* ---------- Diktafon ---------- */
-.rec { display: flex; flex-direction: column; height: 100%; }
-.rec-list { flex: 1; min-height: 0; overflow-y: auto; }
-.rec-row { gap: 12px; }
-.rec-row .grow b { display: block; }
-.rec-play { width: 38px; height: 38px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 16px; flex: none; }
-.rec-panel { flex: none; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 10px 0 6px; border-top: .5px solid var(--sep); }
-.rec-wave { width: calc(100% - 40px); height: 60px; }
-.rec-time { font-size: 30px; font-weight: 300; font-variant-numeric: tabular-nums; }
-.rec-btn { width: 72px; height: 72px; border-radius: 50%; border: 4px solid var(--app-fg); display: flex; align-items: center; justify-content: center; }
-.rec-btn i { width: 54px; height: 54px; border-radius: 50%; background: #ff3b30; transition: all .2s; }
-.rec-btn.on i { width: 28px; height: 28px; border-radius: 6px; }
-
-/* =====================================================================
-   1.1: kidolgozott animációk
-   Rugós görbék: a mozgás kicsit túllendül, majd visszarugózik, mint egy valódi tárgy.
-   ===================================================================== */
-:root {
-  --spring: linear(0, 0.009, 0.035 2.1%, 0.141, 0.281 6.7%, 0.723 12.9%, 0.938 16.7%, 1.017, 1.077, 1.121, 1.149 24.3%, 1.159, 1.163, 1.161, 1.154 29.9%, 1.129 32.8%, 1.051 39.6%, 1.017 43.1%, 0.991, 0.977 51%, 0.974 53.8%, 0.975 57.1%, 0.997 69.8%, 1.003 76.9%, 1);
-  --spring-soft: linear(0, 0.006, 0.025 2.8%, 0.101 6.1%, 0.539 18.9%, 0.721 25.3%, 0.849 31.5%, 0.937 38.1%, 0.968 41.8%, 0.991 45.7%, 1.006 50.1%, 1.015 55%, 1.017 63.9%, 1.001 85.9%, 1);
-}
-
-/* ---------- Fénygyűrű: a szín és a töltöttség simán változik ---------- */
-@property --ring-p { syntax: '<number>'; inherits: true; initial-value: 100; }
-@property --ring-c { syntax: '<color>'; inherits: true; initial-value: transparent; }
-#cam-ring { transition: --ring-p .8s var(--spring-soft), --ring-c .45s ease; }
-
-/* ---------- Appablak: az ikonból nő ki (a mozgást az os.js vezérli) ---------- */
-#app-window { transform: none; opacity: 1; visibility: hidden; transition: none; }
-#app-window.open { visibility: visible; }
-.app-splash { position: absolute; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; pointer-events: none; }
-.app-splash span { font-size: 60px; display: flex; }
-.app-splash .aicon { width: 120px; height: 120px; }
-
-/* Mélység: ha nyitva van egy app, a kezdőképernyő hátrébb lép és elmosódik */
-#home { transition: transform .6s var(--spring-soft), filter .35s ease, opacity .35s ease; }
-#screen.app-open #home { transform: scale(.93); opacity: 1; filter: blur(4px) brightness(.75); }
-
-/* Ikon nyomása: besüpped, elengedve visszarugózik */
-.app-icon .icon { transition: transform .5s var(--spring); }
-.app-icon:active .icon { transform: scale(.86); transition-duration: .12s; }
-.widget, .mwidget { transition: scale .5s var(--spring); }
-.widget:active, .mwidget:active { scale: .98; }
-
-/* ---------- Zárolási képernyő: ujjkövető feloldás ---------- */
-#lock { transition: transform .6s var(--spring-soft), opacity .45s ease; }
-.lock-main {
-  transform: translateY(calc(var(--p, 0) * -50px)) scale(calc(1 - var(--p, 0) * .2));
-  opacity: calc(1 - var(--p, 0) * 1.4);
-  transition: transform .55s var(--spring), opacity .3s ease;
-}
-#lock-notifs, .lock-mw, #lock-owner { opacity: calc(1 - var(--p, 0) * 1.6); transition: opacity .3s ease; }
-.lock-hint { opacity: calc(.85 - var(--p, 0) * 2); }
-#lock.dragging .lock-main, #lock.dragging #lock-notifs, #lock.dragging .lock-mw, #lock.dragging #lock-owner { transition: none; }
-
-/* ---------- Indulás: a gyűrű kinyílik, a betűk beugranak, majd a gyűrű „átrepül” a kijelzőn ---------- */
-.boot-logo { animation: bootIn .8s var(--spring) both, spin 1.4s linear infinite; }
-@keyframes bootIn { from { scale: 0; opacity: 0; } }
+.boot-name { font: 700 24px var(--font-display); letter-spacing: 10px; }
 .boot-name span { display: inline-block; animation: letterIn .6s var(--spring) both; animation-delay: calc(250ms + var(--i) * 80ms); }
-@keyframes letterIn { from { opacity: 0; translate: 0 22px; scale: .5; } }
-#boot.done { transition: opacity .45s ease .15s; }
+#boot.done { opacity: 0; pointer-events: none; transition: opacity .45s ease .15s; }
 #boot.done .boot-logo { scale: 9; opacity: 0; transition: scale .65s cubic-bezier(.55,0,.2,1), opacity .5s ease .1s; }
 #boot.done .boot-name { opacity: 0; translate: 0 -10px; transition: opacity .25s, translate .3s; }
 #screen.boot-reveal .lock-main { animation: lockIn .9s var(--spring-soft) both .15s; }
 #screen.boot-reveal .lock-hint { animation: fadeIn .6s ease both .5s; }
 #screen.boot-reveal #statusbar { animation: fadeIn .5s ease both .3s; }
-@keyframes lockIn { from { opacity: 0; translate: 0 -30px; scale: .92; } }
 
-/* ---------- Vezérlőközpont, értesítési központ, kereső: rugós leereszkedés ---------- */
-#cc, #nc, #spot { transition: opacity .25s ease, transform .55s var(--spring-soft); transform: translateY(-40px) scale(.97); }
-#screen.cc-open #cc, #screen.nc-open #nc, #screen.spot-open #spot { transform: none; }
-#screen.cc-open .cc-grid > * { animation: tileIn .55s var(--spring) backwards; }
-@keyframes tileIn { from { opacity: 0; scale: .5; } }
-.cc-grid > :nth-child(2) { animation-delay: 25ms !important; }
-.cc-grid > :nth-child(3) { animation-delay: 50ms !important; }
-.cc-grid > :nth-child(4) { animation-delay: 75ms !important; }
-.cc-grid > :nth-child(5) { animation-delay: 70ms !important; }
-.cc-grid > :nth-child(6) { animation-delay: 95ms !important; }
-.cc-grid > :nth-child(7) { animation-delay: 120ms !important; }
-.cc-grid > :nth-child(8) { animation-delay: 145ms !important; }
-.cc-grid > :nth-child(9) { animation-delay: 170ms !important; }
-.cc-tile { transition: background .25s ease, scale .45s var(--spring); }
+/* =====================================================================
+   Zárolási képernyő
+   ===================================================================== */
+#lock {
+  position: absolute; inset: 0; z-index: 60; display: flex; flex-direction: column; align-items: center; padding-top: 78px;
+  background: linear-gradient(rgba(0,0,0,.08), rgba(0,0,0,.4)), var(--wall);
+  transition: transform .6s var(--spring-soft), opacity .45s ease; will-change: transform; touch-action: none;
+}
+#lock.hidden { transform: translateY(-100%); opacity: 0; pointer-events: none; }
+.lock-main {
+  display: flex; flex-direction: column; align-items: center;
+  transform: translateY(calc(var(--p, 0) * -50px)) scale(calc(1 - var(--p, 0) * .2));
+  opacity: calc(1 - var(--p, 0) * 1.4);
+  transition: transform .55s var(--spring), opacity .3s ease;
+}
+.lock-icon { font-size: 18px; margin-bottom: 12px; opacity: .85; }
+.lock-date { font: 600 15px var(--font-ui); letter-spacing: .12em; text-transform: uppercase; opacity: .9; }
+/* 3.0: óriási, két sorba rendezett óra — fölül az óra, alatta a perc */
+.lock-time {
+  display: flex; flex-direction: column; align-items: center; margin-top: 6px;
+  font: var(--lock-w, 700) 136px/0.84 var(--font-display); letter-spacing: -.055em; font-variant-numeric: tabular-nums;
+  color: var(--lock-c, #fff); text-shadow: 0 10px 40px rgba(0,0,0,.25);
+}
+.lock-time span { display: block; }
+.lock-time span:nth-child(2) {
+  background: linear-gradient(180deg, var(--lock-c, #fff) 20%, color-mix(in srgb, var(--lock-c, #fff) 45%, transparent));
+  -webkit-background-clip: text; background-clip: text; color: transparent; text-shadow: none;
+}
+#lock.with-sec .lock-time { font-size: 96px; }
+#lock.with-sec .lock-time span:nth-child(3) { font-size: .45em; letter-spacing: -.02em; opacity: .7; margin-top: 8px; }
+#lock-widgets { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; max-width: 340px; margin-top: 18px; }
+.lw {
+  display: flex; align-items: center; gap: 6px; padding: 7px 13px; border-radius: 16px; color: #fff; font-size: 14px;
+  background: var(--glass); -webkit-backdrop-filter: var(--glass-fx); backdrop-filter: var(--glass-fx); box-shadow: var(--glass-edge);
+}
+.lw .ic { font-size: 15px; }
+.lw b { font: 700 14px var(--font-display); }
+.lw span { max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; opacity: .85; }
+#lock-notifs { display: flex; flex-direction: column; width: calc(100% - 28px); margin-top: 18px; }
+#lock-notifs, .lock-mw, #lock-owner { opacity: calc(1 - var(--p, 0) * 1.6); transition: opacity .3s ease; }
+#lock.dragging :is(.lock-main, #lock-notifs, .lock-mw, #lock-owner) { transition: none; }
+#lock-owner {
+  position: absolute; left: 28px; right: 28px; bottom: 98px; padding: 11px 15px; border-radius: 18px; text-align: center;
+  font-size: 14px; line-height: 1.4; background: var(--glass); -webkit-backdrop-filter: var(--glass-fx); backdrop-filter: var(--glass-fx); box-shadow: var(--glass-edge);
+}
+.lock-hint {
+  position: absolute; bottom: 42px; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  font-size: 14px; font-weight: 500; letter-spacing: .02em; opacity: calc(.85 - var(--p, 0) * 2); animation: bob 2s infinite;
+}
+.lock-hint span { font-size: 20px; }
+
+/* PIN */
+#pin { display: none; flex-direction: column; align-items: center; gap: 22px; margin-top: 30px; }
+#lock.pin-mode { background: linear-gradient(rgba(0,0,0,.5), rgba(0,0,0,.65)), var(--wall); }
+#lock.pin-mode :is(.lock-main, .lock-hint, #lock-notifs, .lock-mw, #lock-owner) { display: none; }
+#lock.pin-mode #pin { display: flex; }
+.pin-title { font: 600 19px var(--font-display); }
+.pin-dots { display: flex; gap: 18px; }
+.pin-dots i { width: 13px; height: 13px; border-radius: 50%; border: 1.5px solid #fff; transition: background .1s; }
+.pin-dots i.on { background: #fff; animation: badgePop .35s var(--spring); }
+.pin-dots.shake { animation: shake .4s; }
+.pin-keys { display: grid; grid-template-columns: repeat(3, 76px); gap: 16px 22px; margin-top: 8px; }
+.pin-keys button {
+  width: 76px; height: 76px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1;
+  font: 400 32px var(--font-display);
+  background: rgba(255,255,255,.14); -webkit-backdrop-filter: var(--glass-fx); backdrop-filter: var(--glass-fx); box-shadow: var(--glass-edge);
+}
+.pin-keys button small { font: 700 9px var(--font-ui); letter-spacing: 2px; }
+.pin-keys button:active { background: rgba(255,255,255,.42); }
+.pin-keys button.ghost { background: none; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; font: 600 16px var(--font-ui); }
+
+/* =====================================================================
+   Kezdőképernyő
+   ===================================================================== */
+#home {
+  position: absolute; inset: 0; padding: 0; perspective: 900px; will-change: transform;
+  transition: transform .6s var(--spring-soft), filter .35s ease, opacity .35s ease;
+}
+/* Mélység: ha nyitva van egy app, a kezdőképernyő hátrébb lép, elmosódik és elsötétül */
+#home::after { content: ""; position: absolute; inset: 0; z-index: 3; background: #000; opacity: 0; pointer-events: none; transition: opacity .35s ease; }
+#screen.app-open #home { transform: scale(.93); filter: blur(6px); }
+#screen.app-open #home::after { opacity: .38; }
+
+#pages { position: absolute; inset: 0; overflow: hidden; touch-action: pan-y; }
+#pager { display: flex; width: 300%; height: 100%; transform: translateX(calc(var(--pg, 1) * -33.3333%)); transition: transform .5s var(--spring-soft); will-change: transform; }
+.page { position: relative; flex: none; width: 33.3333%; height: 100%; padding: 62px 20px 0; }
+#page-today, #page-lib {
+  height: calc(100% - 196px); padding-bottom: 20px; overflow-y: auto; scrollbar-width: none;
+  -webkit-mask: linear-gradient(#000 calc(100% - 26px), transparent); mask: linear-gradient(#000 calc(100% - 26px), transparent);
+}
+#page-today::-webkit-scrollbar, #page-lib::-webkit-scrollbar { display: none; }
+#page-dots { position: absolute; left: 50%; bottom: 178px; z-index: 2; display: flex; gap: 9px; transform: translateX(-50%); }
+#page-dots i { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.38); cursor: pointer; transition: scale .4s var(--spring), background .2s; }
+#page-dots i.on { background: #fff; scale: 1.45; box-shadow: 0 0 8px rgba(255,255,255,.6); }
+#screen.editing #page-dots { opacity: 0; }
+
+#app-grid {
+  display: grid; grid-template-columns: repeat(var(--cols, 4), 1fr); gap: 22px 8px; justify-items: center;
+  max-height: calc(100% - 178px); padding-bottom: 10px; overflow-y: auto; scrollbar-width: none; transition: transform .25s ease-out;
+}
+#app-grid::-webkit-scrollbar { display: none; }
+
+/* Üdvözlő widget */
+.widget {
+  grid-column: 1 / -1; width: 100%; display: flex; flex-direction: column; gap: 2px; padding: 16px 20px; border-radius: 28px;
+  background: var(--glass); -webkit-backdrop-filter: var(--glass-fx); backdrop-filter: var(--glass-fx); box-shadow: var(--glass-edge), var(--lift);
+  transition: scale .5s var(--spring);
+}
+.widget:active { scale: .98; }
+.widget small { font-size: 14px; font-weight: 600; opacity: .85; }
+.widget b { font: 700 46px/1.05 var(--font-display); letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+.widget span { font-size: 14px; opacity: .85; }
+
+/* App ikonok: fényes csepp, színes ragyogással */
+.app-icon { display: flex; flex-direction: column; align-items: center; gap: 7px; max-width: 100%; min-width: 0; font-size: 12px; font-weight: 600; text-shadow: 0 1px 4px rgba(0,0,0,.45); touch-action: manipulation; }
+.app-icon span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.app-icon .icon {
+  position: relative; width: var(--icon-size, 60px); height: var(--icon-size, 60px); border-radius: var(--icon-radius, 50% 50% 50% 18%);
+  display: flex; align-items: center; justify-content: center; font-size: calc(var(--icon-size, 60px) * .5); text-shadow: none;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.18), 0 10px 22px -8px rgba(0,0,0,.6);
+  transition: transform .5s var(--spring);
+}
+.app-icon .icon::before { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: linear-gradient(170deg, rgba(255,255,255,.34), rgba(255,255,255,0) 46%); }
+.app-icon .icon > .ic, .app-icon .icon > .aicon { position: relative; z-index: 1; }
+.app-icon .icon .ic { filter: drop-shadow(0 1px 1.5px rgba(0,0,0,.28)); }
+.app-icon:active .icon { transform: scale(.86); transition-duration: .12s; }
+/* Csillogás: feloldáskor egy fénycsík fut végig az ikonokon */
+.app-icon .icon::after {
+  content: ""; position: absolute; inset: 0; z-index: 2; border-radius: inherit; pointer-events: none; opacity: 0;
+  background: linear-gradient(115deg, transparent 35%, rgba(255,255,255,.6) 50%, transparent 65%) 150% 0 / 250% 100% no-repeat;
+}
+#screen.unlocking .app-icon .icon::after { animation: shine .9s ease both; animation-delay: calc(var(--i, 0) * 35ms + 300ms); }
+.app-icon:hover .icon::after { animation: shine .8s ease; }
+.badge {
+  position: absolute; top: -6px; right: -6px; z-index: 3; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 11px;
+  display: none; align-items: center; justify-content: center;
+  background: #ff3b30; color: #fff; font: 700 13px var(--font-display); font-style: normal; box-shadow: 0 4px 10px rgba(255,59,48,.45);
+  animation: badgePop .5s var(--spring);
+}
+.aicon { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
+.cal-icon { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1; }
+
+/* Dokk: lebegő üvegsáv */
+#dock {
+  position: absolute; left: 12px; right: 12px; bottom: 22px; height: 92px; border-radius: 36px;
+  display: flex; justify-content: space-around; align-items: center;
+  background: rgba(255,255,255,.14); -webkit-backdrop-filter: var(--glass-fx); backdrop-filter: var(--glass-fx);
+  box-shadow: var(--glass-edge), 0 20px 40px -18px rgba(0,0,0,.6); transition: transform .25s ease-out;
+}
+#spot-pill {
+  position: absolute; left: 50%; bottom: 128px; display: flex; align-items: center; gap: 6px; padding: 8px 17px; border-radius: 20px;
+  transform: translateX(-50%); font-size: 13px; font-weight: 700; color: #fff;
+  background: var(--glass); -webkit-backdrop-filter: var(--glass-fx); backdrop-filter: var(--glass-fx); box-shadow: var(--glass-edge);
+  transition: opacity .2s, scale .45s var(--spring);
+}
+#spot-pill .ic { font-size: 15px; }
+#spot-pill:active { scale: .92; }
+#screen:is(.on-lib, .on-today, .editing) #spot-pill { opacity: 0; pointer-events: none; }
+
+/* Feloldáskor az ikonok egymás után ugranak be */
+#screen.unlocking #home { animation: homeIn .6s var(--spring-soft); }
+#screen.unlocking :is(.app-icon, .widget) { animation: pop .45s var(--spring) backwards; animation-delay: calc(var(--i, 0) * 30ms + 80ms); }
+
+/* Érintés-fény */
+.touch-ring {
+  position: absolute; z-index: 96; width: 150px; height: 150px; margin: -75px 0 0 -75px; border-radius: 50%; pointer-events: none;
+  border: 2px solid rgba(255,255,255,.75); box-shadow: 0 0 18px var(--accent), inset 0 0 18px var(--accent);
+  animation: touchRing .75s cubic-bezier(.2,.8,.2,1) forwards;
+}
+
+/* Szerkesztő mód */
+#screen.editing #app-grid .app-icon .icon { animation: wiggle .26s ease-in-out infinite alternate; animation-delay: var(--w, 0s); }
+#screen.editing .app-icon:active .icon { transform: none; }
+.del-badge {
+  position: absolute; top: -7px; left: -7px; z-index: 4; width: 24px; height: 24px; border-radius: 50%; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; font-size: 11px; font-style: normal;
+  background: rgba(50,52,64,.92); color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,.4); animation: badgePop .45s var(--spring);
+}
+.del-badge .ic { stroke-width: 3.2; }
+.drag-src { opacity: .2; }
+.drag-src .icon, .drag-ghost .icon { animation: none !important; }
+.drag-ghost { position: absolute; z-index: 99; pointer-events: none; scale: 1.15; filter: drop-shadow(0 18px 26px rgba(0,0,0,.45)); }
+.drag-ghost .del-badge { display: none; }
+#edit-done {
+  position: absolute; top: 60px; right: 20px; z-index: 5; padding: 8px 18px; border-radius: 18px; color: #fff; font-size: 14px; font-weight: 800;
+  background: rgba(255,255,255,.22); -webkit-backdrop-filter: var(--glass-fx); backdrop-filter: var(--glass-fx); box-shadow: var(--glass-edge);
+  opacity: 0; pointer-events: none; transform: translateY(-12px) scale(.8); transition: opacity .2s, transform .45s var(--spring);
+}
+#screen.editing #edit-done { opacity: 1; pointer-events: auto; transform: none; }
+
+/* ---------- Élő háttérképek: egy széles réteg csúszik a háttér alatt ---------- */
+#screen.live-wall::before, #screen.live-wall #lock::before {
+  content: ""; position: absolute; top: 0; bottom: 0; left: 0; z-index: -1; width: 300%; pointer-events: none;
+  background: var(--wall); animation: wallSlide 24s ease-in-out infinite alternate; will-change: transform;
+}
+#screen.live-wall #lock::before { background: linear-gradient(rgba(0,0,0,.08), rgba(0,0,0,.4)), var(--wall); }
+
+/* ---------- Aurora ---------- */
+.aurora-fx { position: absolute; inset: 0; z-index: -1; display: none; overflow: hidden; pointer-events: none; }
+#screen.aurora .aurora-fx, #setup .aurora-fx.on { display: block; }
+#setup .aurora-fx.on { z-index: 0; }
+.aurora-fx i { position: absolute; width: 75%; aspect-ratio: 1; border-radius: 50%; filter: blur(48px); opacity: .85; mix-blend-mode: screen; will-change: transform; }
+.aurora-fx i:nth-child(1) { left: -20%; top: -10%; background: #7f53ac; animation: aur1 17s ease-in-out infinite alternate; }
+.aurora-fx i:nth-child(2) { right: -25%; top: 25%; background: #11998e; animation: aur2 21s ease-in-out infinite alternate; }
+.aurora-fx i:nth-child(3) { left: 5%; bottom: -20%; background: #2a5298; animation: aur3 19s ease-in-out infinite alternate; }
+.aurora-fx i:nth-child(4) { right: -10%; bottom: 5%; width: 45%; opacity: .5; background: #ff375f; animation: aur1 23s ease-in-out infinite alternate-reverse; }
+.aurora-fx i:nth-child(5) { left: 25%; top: 35%; width: 40%; opacity: .4; background: #38ef7d; animation: aur2 15s ease-in-out infinite alternate-reverse; }
+.aurora-fx b { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 40%, transparent 40%, rgba(0,0,0,.5)); }
+
+/* =====================================================================
+   Ma nézet és Alkalmazástár
+   ===================================================================== */
+.tw-head { display: flex; flex-direction: column; margin: 2px 4px 14px; color: #fff; text-shadow: 0 1px 8px rgba(0,0,0,.3); }
+.tw-head small { font-size: 15px; font-weight: 600; opacity: .85; }
+.tw-head b { font: 800 32px var(--font-display); letter-spacing: -.03em; }
+.tw-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.tw {
+  position: relative; min-height: 142px; padding: 15px; border-radius: 28px; overflow: hidden; text-align: left;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 4px; color: #fff;
+  background: var(--glass); -webkit-backdrop-filter: var(--glass-fx); backdrop-filter: var(--glass-fx); box-shadow: var(--glass-edge), var(--lift);
+  transition: scale .45s var(--spring);
+}
+.tw:active { scale: .96; transition-duration: .1s; }
+.tw-wide { grid-column: 1 / -1; min-height: auto; flex-direction: row; align-items: center; gap: 12px; }
+.tw-weather { padding: 0; }
+.tw-wx { width: 100%; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; padding: 16px 18px; }
+.tw-wx small { display: block; font-size: 14px; font-weight: 600; opacity: .9; }
+.tw-wx b { display: block; font: 300 56px/1.02 var(--font-display); letter-spacing: -.04em; }
+.tw-wx span { font-size: 15px; font-weight: 700; }
+.tw-wx span.tw-wx-ic { display: flex; font-size: 70px; line-height: 1; filter: drop-shadow(0 8px 16px rgba(0,0,0,.25)); }
+.tw-wx-ic .ic { width: 1em; height: 1em; }
+.tw-wx em { width: 100%; margin-top: 4px; font-size: 12px; font-style: normal; opacity: .85; }
+.tw-ico { width: 40px; height: 40px; border-radius: var(--icon-radius); display: flex; align-items: center; justify-content: center; flex: none; font-size: 21px; color: #fff; }
+.tw-t b { display: block; font-size: 16px; }
+.tw-t small { font-size: 13px; opacity: .8; }
+.tw-h { font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; opacity: .85; }
+.tw-big { font: 300 46px/1 var(--font-display); letter-spacing: -.04em; }
+.tw-sub { font-size: 12px; opacity: .75; }
+.tw-cal { background: rgba(255,255,255,.94); color: #14151c; -webkit-backdrop-filter: none; backdrop-filter: none; }
+.tw-ev { display: flex; align-items: center; gap: 5px; max-width: 100%; overflow: hidden; font-size: 12px; white-space: nowrap; text-overflow: ellipsis; }
+.tw-ev i { width: 6px; height: 6px; border-radius: 50%; flex: none; background: #ff3b5c; }
+.tw-batt { align-items: center; justify-content: center; }
+.tw-ring { position: relative; width: 66px; height: 66px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+.tw-ring::before {
+  content: ""; position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(var(--c) calc(var(--p) * 1%), rgba(255,255,255,.18) 0);
+  -webkit-mask: radial-gradient(circle, transparent 26px, #000 27px); mask: radial-gradient(circle, transparent 26px, #000 27px);
+  filter: drop-shadow(0 0 6px var(--c));
+}
+.tw-batt b { font: 700 22px var(--font-display); }
+.tw-alarm b, .tw-time b { font: 700 28px var(--font-display); letter-spacing: -.03em; }
+.tw-bars { display: flex; flex-direction: column; gap: 4px; width: 100%; margin-top: auto; }
+.tw-bars i { display: block; height: 6px; border-radius: 3px; }
+.tw-note { background: linear-gradient(160deg, #fff7d1, #ffe39a); color: #3d2c00; -webkit-backdrop-filter: none; backdrop-filter: none; }
+.tw-notetext { font-size: 13px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+.tw-music { grid-column: 1 / -1; }
+
+.lib-head { margin: 2px 4px 10px; color: #fff; }
+.lib-head b { font: 800 32px var(--font-display); letter-spacing: -.03em; }
+.lib-search {
+  display: flex; align-items: center; gap: 8px; padding: 10px 13px; border-radius: 16px; color: #fff; font-size: 17px;
+  background: var(--glass); -webkit-backdrop-filter: var(--glass-fx); backdrop-filter: var(--glass-fx); box-shadow: var(--glass-edge);
+}
+.lib-search input { flex: 1; min-width: 0; background: none; border: 0; outline: 0; color: #fff; font-size: 16px; }
+.lib-search input::placeholder { color: rgba(255,255,255,.65); }
+.lib-label { margin: 18px 4px 8px; font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,.8); }
+.lib-rec { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.lib-big { display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 0; color: #fff; font-size: 11px; font-weight: 600; }
+.lib-big small { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lib-big .lib-ic { width: 56px; height: 56px; font-size: 28px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.18), 0 10px 20px -8px rgba(0,0,0,.6); }
+.lib-letter { margin: 12px 6px 4px; font: 800 12px var(--font-display); color: rgba(255,255,255,.6); }
+.lib-row {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 6px; padding-right: 8px; border-radius: 18px;
+  background: var(--glass); -webkit-backdrop-filter: var(--glass-fx); backdrop-filter: var(--glass-fx); box-shadow: var(--glass-edge);
+}
+.lib-open { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; padding: 8px 10px; color: #fff; font-size: 16px; font-weight: 600; text-align: left; transition: scale .4s var(--spring); }
+.lib-open:active { scale: .97; transition-duration: .1s; }
+.lib-ic { width: 38px; height: 38px; border-radius: var(--icon-radius); display: flex; align-items: center; justify-content: center; flex: none; overflow: hidden; font-size: 20px; }
+.lib-pin { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex: none; font-size: 15px; color: #fff; background: rgba(255,255,255,.16); }
+.lib-pin.on { color: #ffd60a; }
+.lib-pin.on .ic { fill: currentColor; }
+.lib-tip { padding: 8px 6px; font-size: 12px; color: rgba(255,255,255,.7); }
+#page-lib .empty { color: rgba(255,255,255,.75); }
+
+/* =====================================================================
+   Rendszerpanelek: vezérlőközpont, értesítések, kereső, appváltó
+   ===================================================================== */
+#cc, #nc, #spot {
+  position: absolute; inset: 0; z-index: 100; color: #fff; opacity: 0; pointer-events: none; transform: translateY(-40px) scale(.97);
+  background: rgba(8,10,20,.45); -webkit-backdrop-filter: blur(40px) saturate(180%); backdrop-filter: blur(40px) saturate(180%);
+  transition: opacity .25s ease, transform .55s var(--spring-soft); will-change: transform, opacity;
+}
+#screen.cc-open #cc, #screen.nc-open #nc, #screen.spot-open #spot { opacity: 1; pointer-events: auto; transform: none; }
+
+/* Vezérlőközpont */
+#cc { padding: 66px 20px; }
+.cc-head { margin: 0 4px 14px; font: 700 15px var(--font-display); opacity: .75; }
+.cc-top { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 12px; }
+.cc-conn { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 10px; border-radius: 30px; background: rgba(255,255,255,.1); box-shadow: var(--glass-edge); }
+.cc-conn .cc-tile { border-radius: 50%; }
+.cc-media { position: relative; display: flex; overflow: hidden; border-radius: 30px; background: rgba(255,255,255,.1); box-shadow: var(--glass-edge); }
+.cc-media-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: #fff; font-size: 26px; }
+.cc-media-empty small { font-size: 11px; opacity: .8; }
+#mw-cc { flex-direction: column; align-items: flex-start; justify-content: space-between; gap: 8px; padding: 12px; border-radius: 0; background: none; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+#mw-cc .mw-text { width: 100%; }
+#mw-cc .mw-btns { width: 100%; justify-content: space-between; }
+#mw-cc:not([hidden]) + .cc-media-empty { display: none; }
+.cc-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.cc-tile {
+  aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border-radius: 24px;
+  font-size: 22px; background: rgba(255,255,255,.12); box-shadow: var(--glass-edge);
+  transition: background .25s ease, scale .45s var(--spring), box-shadow .25s ease;
+}
+.cc-tile .ic { font-size: 24px; }
+.cc-tile small { max-width: 92%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 10px; font-weight: 600; opacity: .9; }
+.cc-tile.on { background: var(--on, #fff); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 8px 22px -6px var(--on, #fff); }
 .cc-tile:active { scale: .9; transition-duration: .1s; }
+.cc-sliders { display: grid; gap: 10px; margin-top: 12px; }
+.cc-slider { display: flex; align-items: center; gap: 12px; padding: 17px 18px; border-radius: 24px; font-size: 20px; background: rgba(255,255,255,.12); box-shadow: var(--glass-edge); }
+.cc-slider .ic { font-size: 22px; }
+.cc-slider input { flex: 1; accent-color: #fff; }
+#screen.cc-open :is(.cc-grid, .cc-top, .cc-sliders) > * { animation: tileIn .55s var(--spring) backwards; }
+#screen.cc-open .cc-top > :nth-child(2) { animation-delay: 40ms; }
+#screen.cc-open .cc-grid > :nth-child(2) { animation-delay: 25ms; }
+#screen.cc-open .cc-grid > :nth-child(3) { animation-delay: 50ms; }
+#screen.cc-open .cc-grid > :nth-child(4) { animation-delay: 75ms; }
+#screen.cc-open .cc-grid > :nth-child(5) { animation-delay: 70ms; }
+#screen.cc-open .cc-grid > :nth-child(6) { animation-delay: 95ms; }
+#screen.cc-open .cc-grid > :nth-child(7) { animation-delay: 120ms; }
+#screen.cc-open .cc-grid > :nth-child(8) { animation-delay: 145ms; }
+#screen.cc-open .cc-sliders > * { animation-delay: 180ms; }
+
+/* Értesítési központ */
+#nc { padding: 60px 14px 40px; overflow-y: auto; }
+.nc-head { display: flex; flex-direction: column; align-items: center; margin: 12px 0 22px; pointer-events: none; }
+.nc-head b { font: 700 64px/1 var(--font-display); letter-spacing: -.05em; font-variant-numeric: tabular-nums; }
+.nc-head span { margin-top: 4px; font-size: 14px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; opacity: .85; }
+.nc-bar { display: flex; justify-content: space-between; align-items: center; margin: 0 6px 10px; font: 700 18px var(--font-display); }
+.nc-clear { padding: 6px 12px; border-radius: 14px; font: 700 13px var(--font-ui); color: #fff; background: rgba(255,255,255,.16); }
+.nc-empty { padding: 40px 0; text-align: center; opacity: .7; }
+.nc-card {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 8px; padding: 12px 12px 12px 14px; border-radius: 22px; cursor: pointer; color: #fff;
+  background: rgba(40,42,56,.55); -webkit-backdrop-filter: var(--glass-fx); backdrop-filter: var(--glass-fx); box-shadow: var(--glass-edge);
+  animation: pop .3s var(--spring) backwards;
+}
+.nc-card .b-icon { width: 38px; height: 38px; font-size: 19px; }
 #nc .nc-card:nth-child(4) { animation-delay: 40ms; }
 #nc .nc-card:nth-child(5) { animation-delay: 80ms; }
 #nc .nc-card:nth-child(6) { animation-delay: 120ms; }
 #nc .nc-card:nth-child(n+7) { animation-delay: 160ms; }
+.nc-x { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex: none; font-size: 13px; color: inherit; opacity: .6; }
+.nc-x:hover { opacity: 1; background: rgba(128,128,128,.25); }
 
-/* Értesítés: rugósan pattan ki a gyűrűből */
-#banner { transition: transform .6s var(--spring), opacity .2s ease; }
+/* Értesítés: a Fénygyűrűből pattan ki */
+#banner {
+  position: absolute; top: 52px; left: 10px; right: 10px; z-index: 105; display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px; border-radius: 24px; cursor: pointer; color: #fff;
+  background: rgba(30,32,46,.6); -webkit-backdrop-filter: var(--glass-fx); backdrop-filter: var(--glass-fx); box-shadow: var(--glass-edge), 0 18px 40px -12px rgba(0,0,0,.6);
+  transform-origin: 26px -24px; transform: scale(.06); opacity: 0; transition: transform .6s var(--spring), opacity .2s ease;
+}
+#banner.show { transform: none; opacity: 1; }
+.b-icon { width: 38px; height: 38px; border-radius: var(--icon-radius, 50% 50% 50% 18%); display: flex; align-items: center; justify-content: center; flex: none; overflow: hidden; font-size: 20px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.18); }
+.b-text { flex: 1; min-width: 0; }
+.b-text b { font-size: 14px; font-weight: 800; }
+.b-text p { overflow: hidden; font-size: 13px; opacity: .88; white-space: nowrap; text-overflow: ellipsis; }
+.b-time { align-self: flex-start; font-size: 12px; opacity: .6; }
 
-/* ---------- Appváltó: 3D körhinta ---------- */
+/* Kereső */
+#spot { z-index: 97; padding: 60px 16px 30px; overflow-y: auto; }
+.spot-bar { display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 16px; font-size: 18px; background: rgba(255,255,255,.14); box-shadow: var(--glass-edge); }
+.spot-bar input { flex: 1; min-width: 0; background: none; border: 0; outline: 0; font-size: 17px; color: #fff; }
+.spot-bar input::placeholder { color: rgba(255,255,255,.55); }
+.spot-x { font-size: 15px; font-weight: 600; color: #fff; opacity: .85; }
+.spot-label { margin: 20px 4px 8px; font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; opacity: .7; }
+.spot-apps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px 6px; }
+.spot-app { display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 0; transition: scale .45s var(--spring); }
+.spot-app:active { scale: .92; }
+.spot-app .icon { width: 56px; height: 56px; border-radius: var(--icon-radius); display: flex; align-items: center; justify-content: center; overflow: hidden; font-size: 28px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.18); }
+.spot-app small { max-width: 100%; overflow: hidden; font-size: 11px; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; }
+.spot-row { width: 100%; display: flex; align-items: center; gap: 12px; margin-bottom: 6px; padding: 10px 12px; border-radius: 16px; text-align: left; font-size: 15px; color: #fff; background: rgba(255,255,255,.1); box-shadow: var(--glass-edge); }
+.spot-row small { display: block; font-size: 12px; opacity: .65; }
+.spot-row .ri { width: 32px; height: 32px; font-size: 17px; }
+.spot-answer { margin-bottom: 6px; padding: 12px 14px; border-radius: 16px; font-size: 15px; line-height: 1.45; white-space: pre-line; background: linear-gradient(135deg, rgba(161,140,209,.35), rgba(106,90,205,.35)); animation: pop .35s var(--spring); }
+.spot-tip { padding: 0 4px; font-size: 14px; line-height: 1.5; opacity: .85; }
+
+/* Appváltó: 3D körhinta */
+#switcher {
+  position: absolute; inset: 0; z-index: 98; display: flex; flex-direction: column; justify-content: center; gap: 22px;
+  background: rgba(4,5,12,.5); -webkit-backdrop-filter: blur(30px) saturate(160%); backdrop-filter: blur(30px) saturate(160%);
+  opacity: 0; pointer-events: none; transition: opacity .2s;
+}
+#screen.switcher-open #switcher { opacity: 1; pointer-events: auto; }
+.sw-cards { display: flex; gap: 16px; padding: 20px 19%; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
+.sw-cards::-webkit-scrollbar { display: none; }
+.sw-card { flex: none; width: 62%; scroll-snap-align: center; cursor: pointer; touch-action: pan-x; transition: transform .25s, opacity .25s; }
+#screen.switcher-open .sw-card { animation: cardIn .3s cubic-bezier(.2,.9,.3,1.1) backwards; }
 .sw-card > * { transform: perspective(900px) rotateY(calc(var(--d, 0) * -26deg)) scale(calc(1 - var(--ad, 0) * .12)); transition: transform .12s linear; }
-.sw-shot { transition: transform .12s linear, filter .2s; filter: brightness(calc(1 - var(--ad, 0) * .35)); }
-
-/* ---------- Kapcsolók: rugós gomb, ami nyomáskor megnyúlik ---------- */
-.switch { transition: background .25s ease; }
-.switch::after { transition: left .5s var(--spring), width .25s ease; }
-.switch:active::after { width: 33px; }
-.switch.on:active::after { left: 16px; }
-
-/* ---------- Gombok: besüppednek, elengedve visszarugóznak ---------- */
-.btn, .st-btn, .ct-act, .preset, .shape-btn, .wall, .accent, .spot-app, .mw-btns button, .key, .ck, .pin-keys button,
-.dpad button, .ttt-cell, .al-day, .wx-btn, .rec-btn, .call-btn, .m-play, .m-prev, .m-next, .round-btn, .pc, .p-undo,
-.sw-clear, .nc-clear, #spot-pill, .tabbar button, .ct-row, .st-hero {
-  transition: scale .45s var(--spring), background .2s ease, filter .2s ease;
+.sw-label { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 14px; font-weight: 700; color: #fff; }
+.sw-label .ri { width: 26px; height: 26px; font-size: 15px; }
+.sw-shot {
+  aspect-ratio: 9 / 17; border-radius: 32px; display: flex; align-items: center; justify-content: center; font-size: 72px;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.16), 0 24px 60px rgba(0,0,0,.55); filter: brightness(calc(1 - var(--ad, 0) * .35)); transition: transform .12s linear, filter .2s;
 }
-.btn:active, .st-btn:active, .ct-act:active, .preset:active, .shape-btn:active, .wall:active, .accent:active, .spot-app:active,
-.mw-btns button:active, .key:active, .ck:active, .pin-keys button:active, .dpad button:active, .ttt-cell:active, .al-day:active,
-.wx-btn:active, .rec-btn:active, .call-btn:active, .m-play:active, .m-prev:active, .m-next:active, .round-btn:active, .pc:active,
-.p-undo:active, .sw-clear:active, .nc-clear:active, #spot-pill:active, .tabbar button:active, .st-hero:active {
-  scale: .92; transition-duration: .1s;
+.sw-shot .aicon { width: 42%; height: auto; border-radius: var(--icon-radius); }
+.sw-clear { align-self: center; padding: 10px 20px; border-radius: 20px; font-size: 14px; font-weight: 700; color: #fff; background: rgba(255,255,255,.16); box-shadow: var(--glass-edge); }
+.sw-empty { text-align: center; font-size: 16px; color: rgba(255,255,255,.75); }
+
+/* Hangerő kijelző */
+#vol-hud {
+  position: absolute; left: 10px; top: 22%; z-index: 106; width: 46px; padding: 11px 0; border-radius: 23px;
+  display: flex; flex-direction: column; align-items: center; gap: 8px; color: #fff; font-size: 16px;
+  background: rgba(30,32,46,.6); -webkit-backdrop-filter: var(--glass-fx); backdrop-filter: var(--glass-fx); box-shadow: var(--glass-edge);
+  transform: translateX(-80px); transition: transform .45s var(--spring);
 }
-button.row { transition: background .25s ease; }
-button.row:active { background: var(--card2); transition-duration: 0s; }
-.mem-card { transition: transform .5s var(--spring); }
+#vol-hud.show { transform: none; }
+#vol-hud .ic { font-size: 18px; }
+.vol-track { width: 8px; height: 120px; display: flex; align-items: flex-end; overflow: hidden; border-radius: 4px; background: rgba(255,255,255,.22); }
+.vol-track i { width: 100%; background: #fff; transition: height .2s; }
 
-/* Kijelölés a szegmentált választóban, értesítési jelvény, PIN-pöttyök: kis rugós „pukkanás” */
-.segmented button.on { animation: segIn .45s var(--spring); }
-@keyframes segIn { from { scale: .8; opacity: .4; } }
-.badge { animation: badgePop .5s var(--spring); }
-@keyframes badgePop { from { scale: 0; } }
-.pin-dots i.on { animation: badgePop .35s var(--spring); }
-#vol-hud { transition: transform .45s var(--spring); }
-
-/* ---------- Appok tartalma: nyitáskor az elemek egymás után úsznak be ---------- */
-#app-content.entering :is(.app-title, .segmented, .group, .group-label, .group-note, .st-hero, .wx-now, .wx-card, .wx-grid,
-  .cal-head, .cal-grid, .analog, .keypad, .dial-actions, .m-art, .m-controls, .m-list, .game-board, .dpad, .mem-grid,
-  .ttt-board, .dice-area, .al-top, .ct-head, .ct-actions, .empty, .presets, .big-num, .round-row, .walls, .accents) {
-  animation: rise .6s var(--spring-soft) backwards;
-}
-@keyframes rise { from { opacity: 0; translate: 0 22px; } }
-#app-content.entering :is(*):nth-child(2) { animation-delay: 30ms; }
-#app-content.entering :is(*):nth-child(3) { animation-delay: 60ms; }
-#app-content.entering :is(*):nth-child(4) { animation-delay: 90ms; }
-#app-content.entering :is(*):nth-child(5) { animation-delay: 120ms; }
-#app-content.entering :is(*):nth-child(6) { animation-delay: 150ms; }
-#app-content.entering :is(*):nth-child(7) { animation-delay: 180ms; }
-#app-content.entering :is(*):nth-child(n+8) { animation-delay: 210ms; }
-
-/* Animációk csökkentése / energiatakarékos mód: a Fénygyűrű és a nagy mozgások is kikapcsolnak */
-#screen.reduce-motion #cam-ring, #screen.saver #cam-ring { transition: none; }
-#screen.reduce-motion #home, #screen.saver #home { filter: none !important; }
-
-/* =====================================================================
-   1.2: „wow” — Fénygyűrű-panel, Aurora, érintés-fény, szerkesztő mód
-   ===================================================================== */
-#screen { isolation: isolate; }
-
-/* ---------- Aurora élő háttér ---------- */
-.aurora-fx { position: absolute; inset: 0; overflow: hidden; pointer-events: none; display: none; z-index: -1; }
-#screen.aurora .aurora-fx { display: block; }
-.aurora-fx i { position: absolute; width: 75%; aspect-ratio: 1; border-radius: 50%; filter: blur(45px); opacity: .8; mix-blend-mode: screen; will-change: transform; }
-.aurora-fx i:nth-child(1) { background: #7f53ac; left: -20%; top: -10%; animation: aur1 17s ease-in-out infinite alternate; }
-.aurora-fx i:nth-child(2) { background: #11998e; right: -25%; top: 25%; animation: aur2 21s ease-in-out infinite alternate; }
-.aurora-fx i:nth-child(3) { background: #2a5298; left: 5%; bottom: -20%; animation: aur3 19s ease-in-out infinite alternate; }
-.aurora-fx i:nth-child(4) { background: #ff375f; right: -10%; bottom: 5%; width: 45%; opacity: .45; animation: aur1 23s ease-in-out infinite alternate-reverse; }
-.aurora-fx i:nth-child(5) { background: #38ef7d; left: 25%; top: 35%; width: 40%; opacity: .35; animation: aur2 15s ease-in-out infinite alternate-reverse; }
-.aurora-fx b { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 40%, transparent 40%, rgba(0,0,0,.5)); }
-@keyframes aur1 { to { transform: translate(35%, 30%) scale(1.25); } }
-@keyframes aur2 { to { transform: translate(-40%, -25%) scale(.85); } }
-@keyframes aur3 { to { transform: translate(30%, -45%) scale(1.15); } }
-
-/* ---------- Érintés-fény ---------- */
-.touch-ring {
-  position: absolute; z-index: 96; width: 150px; height: 150px; margin: -75px 0 0 -75px; border-radius: 50%; pointer-events: none;
-  border: 2px solid rgba(255,255,255,.75);
-  box-shadow: 0 0 18px var(--accent), inset 0 0 18px var(--accent);
-  animation: touchRing .75s cubic-bezier(.2,.8,.2,1) forwards;
-}
-@keyframes touchRing { from { transform: scale(.08); opacity: 1; } to { transform: scale(1); opacity: 0; } }
-
-/* ---------- Fénygyűrű: zenére lüktet, és kattintható ---------- */
-#cam-ring { cursor: pointer; z-index: 128; transform: scale(var(--beat, 1)); transition: --ring-p .8s var(--spring-soft), --ring-c .45s ease, transform .08s linear; }
-#screen.ring-music #cam-ring::before { animation: none; }
-#screen.ring-music #cam-ring { filter: drop-shadow(0 0 calc((var(--beat, 1) - 1) * 40px) #bf5af2); }
-
-/* ---------- Fénygyűrű-panel ---------- */
+/* Fénygyűrű-panel: nagyítással nyílik a gyűrűből */
 #ring-panel {
-  position: absolute; left: 18px; top: 10px; z-index: 125; width: 36px; height: 36px; border-radius: 18px;
-  background: #000; color: #fff; overflow: hidden; opacity: 0; pointer-events: none;
-  box-shadow: 0 0 0 1px rgba(255,255,255,.08), 0 16px 44px rgba(0,0,0,.5);
-  transition: width .6s var(--spring), height .6s var(--spring), border-radius .5s var(--spring-soft), left .5s var(--spring), top .5s var(--spring), opacity .15s;
+  position: absolute; left: 10px; top: 6px; z-index: 125; width: calc(100% - 20px); height: 36px; border-radius: 30px; overflow: hidden; color: #fff;
+  background: #05060a; box-shadow: 0 0 0 1px rgba(255,255,255,.08), 0 20px 50px rgba(0,0,0,.55);
+  opacity: 0; pointer-events: none; transform-origin: 26px 22px; transform: scale(var(--sx, .08), var(--sy, 1));
+  transition: transform .5s var(--spring-soft), opacity .18s ease; will-change: transform;
 }
-#screen.rp-open #ring-panel { left: 10px; top: 6px; width: calc(100% - 20px); border-radius: 30px; opacity: 1; pointer-events: auto; }
+#screen.rp-open #ring-panel { opacity: 1; pointer-events: auto; transform: none; }
 .rp-in { padding: 46px 14px 10px; opacity: 0; transform: translateY(-6px) scale(.97); transition: opacity .2s, transform .4s var(--spring); }
 #screen.rp-open .rp-in { opacity: 1; transform: none; transition-delay: .12s; }
-.rp-sec { display: flex; align-items: center; gap: 12px; padding: 10px 2px; border-top: 1px solid rgba(255,255,255,.09); }
+.rp-sec { display: flex; align-items: center; gap: 12px; padding: 10px 2px; border-top: 1px solid rgba(255,255,255,.08); }
 .rp-sec:first-child { border-top: 0; }
-.rp-sec .grow { min-width: 0; display: flex; flex-direction: column; }
-.rp-sec small { font-size: 12px; opacity: .6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.rp-sec b { font-size: 19px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
-.rp-sub { font-size: 12px; opacity: .6; font-weight: 500; }
-.rp-sec button { min-width: 36px; height: 36px; padding: 0 10px; border-radius: 18px; background: rgba(255,255,255,.12); color: #fff; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex: none; transition: scale .4s var(--spring); }
+.rp-sec .grow { min-width: 0; display: flex; flex-direction: column; flex: 1; }
+.rp-sec small { overflow: hidden; font-size: 12px; opacity: .6; white-space: nowrap; text-overflow: ellipsis; }
+.rp-sec b { overflow: hidden; font: 600 19px var(--font-display); white-space: nowrap; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+.rp-sub { font: 500 12px var(--font-ui); opacity: .6; }
+.rp-sec button { min-width: 36px; height: 36px; padding: 0 10px; border-radius: 18px; display: flex; align-items: center; justify-content: center; flex: none; font-size: 13px; font-weight: 800; color: #fff; background: rgba(255,255,255,.12); transition: scale .4s var(--spring); }
 .rp-sec button:active { scale: .88; transition-duration: .1s; }
 .rp-sec button .ic { font-size: 16px; }
 .rp-sec button.rp-red { background: #ff453a; }
-.rp-dial { width: 40px; height: 40px; border-radius: 50%; flex: none; position: relative; display: flex; align-items: center; justify-content: center; font-size: 17px; color: #ff9f0a; }
+.rp-dial { position: relative; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex: none; font-size: 17px; color: #ff9f0a; }
 .rp-dial::before { content: ""; position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(currentColor calc(var(--p) * 1%), rgba(255,255,255,.15) 0); -webkit-mask: radial-gradient(circle, transparent 15px, #000 16px); mask: radial-gradient(circle, transparent 15px, #000 16px); }
 .rp-dial.rp-green { color: #34c759; }
-.rp-ico { width: 40px; height: 40px; border-radius: 50%; background: rgba(255,159,10,.18); color: #ff9f0a; display: flex; align-items: center; justify-content: center; font-size: 19px; flex: none; }
-.rp-disc { width: 40px; height: 40px; border-radius: 50%; flex: none; background: conic-gradient(var(--c1), var(--c2), var(--c1)); position: relative; }
+.rp-ico { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex: none; font-size: 19px; color: #ff9f0a; background: rgba(255,159,10,.18); }
+.rp-disc { position: relative; width: 40px; height: 40px; border-radius: 50%; flex: none; background: conic-gradient(var(--c1), var(--c2), var(--c1)); }
 .rp-disc::after { content: ""; position: absolute; inset: 15px; border-radius: 50%; background: #000; }
 .rp-disc.on { animation: spin 4s linear infinite; }
 .rp-eq { display: flex; align-items: flex-end; gap: 2px; height: 10px; margin-top: 3px; }
@@ -1148,232 +629,536 @@ button.row:active { background: var(--card2); transition-duration: 0s; }
 .rp-eq.on i:nth-child(2) { animation-delay: .15s; }
 .rp-eq.on i:nth-child(3) { animation-delay: .3s; }
 .rp-eq.on i:nth-child(4) { animation-delay: .08s; }
-@keyframes eq { to { height: 100%; } }
-.rp-dot { width: 14px; height: 14px; border-radius: 50%; margin: 0 13px; flex: none; }
+.rp-dot { width: 14px; height: 14px; margin: 0 13px; border-radius: 50%; flex: none; }
 .rp-rec { background: #ff453a; animation: pulse 1s infinite; }
 .rp-idle b { font-size: 26px; }
-.rp-batt { width: 34px; height: 16px; border-radius: 5px; border: 1.5px solid rgba(255,255,255,.7); padding: 2px; flex: none; }
+.rp-batt { width: 34px; height: 16px; padding: 2px; border: 1.5px solid rgba(255,255,255,.7); border-radius: 5px; flex: none; }
 .rp-batt i { display: block; height: 100%; border-radius: 2px; background: #34c759; }
 
-/* ---------- Kezdőképernyő-szerkesztés ---------- */
-#screen.editing #app-grid .app-icon .icon { animation: wiggle .26s ease-in-out infinite alternate; animation-delay: var(--w, 0s); }
-@keyframes wiggle { from { rotate: -2.4deg; } to { rotate: 2.4deg; } }
-#screen.editing .app-icon:active .icon { transform: none; }
-#screen.editing #spot-pill { opacity: 0; pointer-events: none; }
-.del-badge {
-  position: absolute; top: -7px; left: -7px; width: 24px; height: 24px; border-radius: 50%; z-index: 2;
-  background: rgba(60,60,67,.92); color: #fff; font-size: 11px; font-style: normal;
-  display: flex; align-items: center; justify-content: center; animation: badgePop .45s var(--spring); cursor: pointer;
-}
-.del-badge .ic { stroke-width: 3.2; }
-.drag-src { opacity: .2; }
-.drag-src .icon { animation: none !important; }
-.drag-ghost { position: absolute; z-index: 99; pointer-events: none; scale: 1.15; filter: drop-shadow(0 18px 26px rgba(0,0,0,.45)); }
-.drag-ghost .icon { animation: none !important; }
-.drag-ghost .del-badge { display: none; }
-#edit-done {
-  position: absolute; top: 60px; right: 20px; z-index: 5; padding: 7px 18px; border-radius: 16px; color: #fff; font-weight: 700; font-size: 14px;
-  background: rgba(255,255,255,.25); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-  opacity: 0; pointer-events: none; transform: translateY(-12px) scale(.8); transition: opacity .2s, transform .45s var(--spring);
-}
-#screen.editing #edit-done { opacity: 1; pointer-events: auto; transform: none; }
-
-/* ---------- Ikonok csillogása (feloldáskor végigfut rajtuk egy fénycsík) ---------- */
-.app-icon .icon::after {
-  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0;
-  background: linear-gradient(115deg, transparent 35%, rgba(255,255,255,.6) 50%, transparent 65%) 150% 0 / 250% 100% no-repeat;
-}
-#screen.unlocking .app-icon .icon::after { animation: shine .9s ease both; animation-delay: calc(var(--i, 0) * 35ms + 300ms); }
-.app-icon:hover .icon::after { animation: shine .8s ease; }
-@keyframes shine { 0% { opacity: 1; background-position: 150% 0; } 100% { opacity: 1; background-position: -60% 0; } }
-
-/* =====================================================================
-   1.4: gyorsítás gyengébb telefonokra (pl. Poco X4 Pro)
-   Szabály: animálni csak eltolást, nagyítást és áttetszőséget szabad,
-   mert ezeket a grafikus chip végzi — minden mást újra kell rajzolni.
-   ===================================================================== */
-
-/* A kezdőképernyő saját rétegen van, így a nagyítása nem rajzol újra semmit */
-#home { will-change: transform; }
-
-/* Appablak: animáció közben lekerekített sarkú */
-#app-window.anim { border-radius: 44px; overflow: hidden; }
-
-/* Mélység: sötétítés egy külön rétegen (olcsó), elmosás csak a „Látványos” módban */
-#home::after { content: ""; position: absolute; inset: 0; background: #000; opacity: 0; pointer-events: none; transition: opacity .35s ease; }
-#screen.app-open #home::after { opacity: .35; }
-#screen.app-open #home { filter: blur(4px); }
-
-/* Élő háttérképek: a színátmenet nem újrarajzolódik, hanem egy széles réteg csúszik alatta */
-#screen.live-wall, #screen.live-wall #lock { animation: none; background-size: auto; }
-#screen.live-wall::before, #screen.live-wall #lock::before {
-  content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 300%; z-index: -1; pointer-events: none;
-  background: var(--wall); animation: wallSlide 24s ease-in-out infinite alternate; will-change: transform;
-}
-#screen.live-wall #lock::before { background: linear-gradient(rgba(0,0,0,.12), rgba(0,0,0,.35)), var(--wall); }
-@keyframes wallSlide { to { transform: translateX(-66.667%); } }
-
-/* Fénygyűrű-panel: méretváltás helyett nagyítással nyílik a gyűrűből */
-#ring-panel {
-  left: 10px; top: 6px; width: calc(100% - 20px); height: 36px; border-radius: 28px;
-  transform-origin: 26px 22px; transform: scale(var(--sx, .08), var(--sy, 1));
-  transition: transform .5s var(--spring-soft), opacity .18s ease; will-change: transform;
-}
-#screen.rp-open #ring-panel { left: 10px; top: 6px; width: calc(100% - 20px); border-radius: 28px; transform: none; }
-
-/* ---------- „Gyors” effektek (telefonon automatikusan) ---------- */
-/* Homályosítás ki: helyette szinte átlátszatlan hátterek */
-#screen.fx-fast *, #screen.fx-fast *::before, #screen.fx-fast *::after { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
-#screen.fx-fast #cc, #screen.fx-fast #nc, #screen.fx-fast #spot, #screen.fx-fast #switcher { background: rgba(14, 16, 26, .94); }
-#screen.fx-fast #banner, #screen.fx-fast .nc-card { background: rgba(40, 40, 46, .97); }
-#screen.fx-fast #dock { background: rgba(255, 255, 255, .22); }
-#screen.fx-fast .widget, #screen.fx-fast .mwidget { background: rgba(255, 255, 255, .2); }
-#screen.fx-fast .lock-mw, #screen.fx-fast #lock-owner { background: rgba(0, 0, 0, .4); }
-#screen.fx-fast .wx-card { background: rgba(255, 255, 255, .18); }
-#screen.fx-fast .game-msg { background: rgba(13, 15, 23, .94); }
-#screen.fx-fast .cc-tile:not(.on), #screen.fx-fast .cc-slider { background: rgba(255, 255, 255, .14); }
-/* Appnyitáskor nincs elmosás, csak sötétítés */
-#screen.fx-fast.app-open #home { filter: none; }
-/* Aurora: kevesebb, egyszerűbb színfelhő */
-#screen.fx-fast .aurora-fx i { mix-blend-mode: normal; filter: blur(30px); opacity: .6; }
-#screen.fx-fast .aurora-fx i:nth-child(n+4) { display: none; }
-/* Egyéb drága apróságok ki */
-#screen.fx-fast .sw-shot { filter: none; }
-#screen.fx-fast.ring-music #cam-ring { filter: none; }
-#screen.fx-fast.unlocking .app-icon .icon::after, #screen.fx-fast .app-icon:hover .icon::after { animation: none; }
-#screen.fx-fast .app-icon .icon .ic { filter: none; }
-#screen.fx-fast .touch-ring { box-shadow: none; }
-/* Feloldás gyors módban: a kör alakú kinyílás helyett könnyű, rugós beúszás */
-#screen.fx-fast.unlocking #home { animation: homeIn .55s var(--spring-soft); }
-@keyframes homeIn { from { opacity: 0; transform: scale(1.08); } }
-
-/* =====================================================================
-   2.0: oldalak, Ma nézet, Alkalmazástár, vezérlőközpont 2.0, varázsló
-   (csak eltolás / nagyítás / áttetszőség animálva — gyenge telefonon is folyamatos)
-   ===================================================================== */
-
-/* ---------- Kezdőképernyő-oldalak ---------- */
-#home { padding: 0; }
-#pages { position: absolute; inset: 0; overflow: hidden; touch-action: pan-y; }
-#pager {
-  display: flex; width: 300%; height: 100%;
-  transform: translateX(calc(var(--pg, 1) * -33.3333%));
-  transition: transform .5s var(--spring-soft); will-change: transform;
-}
-.page { flex: none; width: 33.3333%; height: 100%; padding: 62px 20px 0; position: relative; }
-#page-today, #page-lib { overflow-y: auto; padding-bottom: 200px; scrollbar-width: none; }
-#page-today::-webkit-scrollbar, #page-lib::-webkit-scrollbar { display: none; }
-#page-dots { position: absolute; left: 50%; bottom: 172px; transform: translateX(-50%); display: flex; gap: 9px; z-index: 2; }
-#page-dots i { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.4); cursor: pointer; transition: scale .4s var(--spring), background .2s; }
-#page-dots i.on { background: #fff; scale: 1.45; }
-#screen.editing #page-dots { opacity: 0; }
-
-/* ---------- Ma nézet: widgetek ---------- */
-.tw-head { display: flex; flex-direction: column; margin: 2px 4px 14px; color: #fff; text-shadow: 0 1px 6px rgba(0,0,0,.25); }
-.tw-head small { font-size: 15px; opacity: .85; }
-.tw-head b { font-size: 30px; font-weight: 700; }
-.tw-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.tw {
-  position: relative; min-height: 140px; border-radius: 24px; padding: 14px; overflow: hidden; text-align: left;
-  display: flex; flex-direction: column; align-items: flex-start; gap: 4px;
-  background: rgba(255,255,255,.18); color: #fff; box-shadow: 0 8px 24px rgba(0,0,0,.12);
-  transition: scale .45s var(--spring);
-}
-.tw:active { scale: .96; transition-duration: .1s; }
-.tw-wide { grid-column: 1 / -1; min-height: auto; flex-direction: row; align-items: center; gap: 12px; }
-.tw-weather { padding: 0; }
-.tw-wx { width: 100%; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; padding: 16px 18px; }
-.tw-wx small { display: block; font-size: 14px; opacity: .9; }
-.tw-wx b { display: block; font-size: 52px; font-weight: 300; line-height: 1.05; }
-.tw-wx span { font-size: 15px; font-weight: 600; }
-.tw-wx-ic { font-size: 66px; }
-.tw-wx em { width: 100%; font-style: normal; font-size: 12px; opacity: .85; margin-top: 4px; }
-.tw-ico { width: 40px; height: 40px; border-radius: var(--icon-radius); display: flex; align-items: center; justify-content: center; font-size: 21px; color: #fff; flex: none; }
-.tw-t b { display: block; font-size: 16px; }
-.tw-t small { font-size: 13px; opacity: .8; }
-.tw-h { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .5px; opacity: .85; }
-.tw-big { font-size: 44px; font-weight: 300; line-height: 1; }
-.tw-sub { font-size: 12px; opacity: .75; }
-.tw-cal { background: rgba(255,255,255,.94); color: #1c1c1e; }
-.tw-ev { display: flex; align-items: center; gap: 5px; font-size: 12px; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.tw-ev i { width: 6px; height: 6px; border-radius: 50%; background: #ff3b5c; flex: none; }
-.tw-batt { align-items: center; justify-content: center; }
-.tw-ring { width: 64px; height: 64px; border-radius: 50%; position: relative; display: flex; align-items: center; justify-content: center; font-size: 22px; }
-.tw-ring::before {
-  content: ""; position: absolute; inset: 0; border-radius: 50%;
-  background: conic-gradient(var(--c) calc(var(--p) * 1%), rgba(255,255,255,.2) 0);
-  -webkit-mask: radial-gradient(circle, transparent 25px, #000 26px); mask: radial-gradient(circle, transparent 25px, #000 26px);
-}
-.tw-batt b { font-size: 22px; }
-.tw-alarm b, .tw-time b { font-size: 26px; font-weight: 600; }
-.tw-bars { display: flex; flex-direction: column; gap: 4px; width: 100%; margin-top: auto; }
-.tw-bars i { display: block; height: 6px; border-radius: 3px; }
-.tw-note { background: linear-gradient(160deg, #fff7d1, #ffe9a3); color: #3d2c00; }
-.tw-notetext { font-size: 13px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
-.tw-music { grid-column: 1 / -1; }
-
-/* ---------- Alkalmazástár ---------- */
-.lib-head { margin: 2px 4px 10px; color: #fff; }
-.lib-head b { font-size: 30px; font-weight: 700; }
-.lib-search { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-radius: 14px; background: rgba(255,255,255,.2); color: #fff; font-size: 17px; }
-.lib-search input { flex: 1; min-width: 0; background: none; border: 0; outline: 0; color: #fff; font-size: 16px; }
-.lib-search input::placeholder { color: rgba(255,255,255,.65); }
-.lib-label { margin: 16px 4px 8px; font-size: 13px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase; color: rgba(255,255,255,.8); }
-.lib-rec { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-.lib-big { display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 0; color: #fff; font-size: 11px; }
-.lib-big small { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.lib-big .lib-ic { width: 54px; height: 54px; font-size: 27px; }
-.lib-letter { margin: 10px 6px 4px; font-size: 12px; font-weight: 800; color: rgba(255,255,255,.6); }
-.lib-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; padding-right: 8px; border-radius: 16px; background: rgba(255,255,255,.12); }
-.lib-open { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; padding: 8px 10px; color: #fff; font-size: 16px; font-weight: 500; text-align: left; transition: scale .4s var(--spring); }
-.lib-open:active { scale: .97; transition-duration: .1s; }
-.lib-ic { width: 38px; height: 38px; border-radius: var(--icon-radius); display: flex; align-items: center; justify-content: center; font-size: 20px; flex: none; overflow: hidden; }
-.lib-pin { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,.18); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 15px; flex: none; }
-.lib-pin.on { color: #ffd60a; }
-.lib-pin.on .ic { fill: currentColor; }
-.lib-tip { padding: 8px 6px; font-size: 12px; color: rgba(255,255,255,.7); }
-#page-lib .empty { color: rgba(255,255,255,.75); }
-
-/* ---------- Widgetek a zárolási képernyőn ---------- */
-#lock-widgets { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin-top: 8px; max-width: 340px; }
-.lw { display: flex; align-items: center; gap: 5px; padding: 5px 11px; border-radius: 14px; background: rgba(255,255,255,.16); color: #fff; font-size: 14px; }
-.lw .ic { font-size: 15px; }
-.lw b { font-weight: 700; }
-.lw span { max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; opacity: .85; }
-
-/* ---------- Visszalépés a bal szélről ---------- */
+/* Visszalépés a bal szélről */
 #edge-arrow {
   position: absolute; left: 4px; top: 50%; z-index: 99; width: 44px; height: 44px; border-radius: 50%; pointer-events: none;
-  display: flex; align-items: center; justify-content: center; font-size: 22px; color: #fff; background: rgba(30,30,34,.88);
+  display: flex; align-items: center; justify-content: center; font-size: 22px; color: #fff; background: rgba(30,30,40,.88); box-shadow: var(--glass-edge);
   transform: translate(-46px, -50%) scale(.6); opacity: 0; transition: transform .25s var(--spring), opacity .2s, background .15s;
 }
 #edge-arrow.ready { background: var(--accent); }
 
-/* ---------- Vezérlőközpont 2.0 ---------- */
-.cc-top { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
-.cc-conn { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 10px; border-radius: 26px; background: rgba(255,255,255,.12); }
-.cc-conn .cc-tile { border-radius: 18px; }
-.cc-media { position: relative; display: flex; border-radius: 26px; background: rgba(255,255,255,.12); overflow: hidden; }
-.cc-media-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: #fff; font-size: 26px; }
-.cc-media-empty small { font-size: 11px; opacity: .8; }
-#mw-cc { flex-direction: column; align-items: flex-start; justify-content: space-between; gap: 8px; padding: 12px; border-radius: 0; background: none; }
-#mw-cc .mw-text { width: 100%; }
-#mw-cc .mw-btns { width: 100%; justify-content: space-between; }
-#mw-cc:not([hidden]) + .cc-media-empty { display: none; }
-.cc-sliders { display: grid; gap: 10px; margin-top: 12px; }
-#screen.cc-open .cc-top > *, #screen.cc-open .cc-sliders > * { animation: tileIn .55s var(--spring) backwards; }
-#screen.cc-open .cc-top > :nth-child(2) { animation-delay: 40ms; }
-#screen.cc-open .cc-sliders > * { animation-delay: 180ms; }
+/* Zene-widget (kezdőképernyő, Ma nézet, zárolás, vezérlőközpont) */
+.mwidget {
+  grid-column: 1 / -1; width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 24px; cursor: pointer; color: #fff;
+  background: var(--glass); -webkit-backdrop-filter: var(--glass-fx); backdrop-filter: var(--glass-fx); box-shadow: var(--glass-edge);
+  transition: scale .5s var(--spring);
+}
+.mwidget:active { scale: .98; }
+.lock-mw { width: calc(100% - 40px); margin-top: 22px; }
+.mw-art { position: relative; width: 46px; height: 46px; border-radius: 50%; flex: none; background: conic-gradient(var(--c1, #7f53ac), var(--c2, #38ef7d), var(--c1, #7f53ac)); }
+.mw-art::after { content: ""; position: absolute; inset: 17px; border-radius: 50%; background: rgba(0,0,0,.55); }
+.mw-art.playing { animation: spin 4s linear infinite; }
+.mw-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.mw-text b { overflow: hidden; font-size: 15px; font-weight: 800; white-space: nowrap; text-overflow: ellipsis; }
+.mw-text span { font-size: 12px; opacity: .75; }
+.mw-bar { height: 3px; margin-top: 5px; overflow: hidden; border-radius: 2px; background: rgba(255,255,255,.25); }
+.mw-bar i { display: block; height: 100%; background: #fff; transition: width .2s linear; }
+.mw-btns { display: flex; align-items: center; gap: 4px; font-size: 22px; }
+.mw-btns button { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; transition: scale .45s var(--spring); }
+.mw-btns button:active { background: rgba(255,255,255,.2); scale: .9; }
 
-/* ---------- Beállító varázsló ---------- */
+/* =====================================================================
+   Alkalmazásablak
+   ===================================================================== */
+#app-window { position: absolute; inset: 0; z-index: 40; visibility: hidden; background: var(--app-bg); color: var(--app-fg); }
+#app-window.open { visibility: visible; }
+#app-window.anim { overflow: hidden; border-radius: 48px; }
+#app-window.dark-ui { background: #000; color: #fff; }
+#app-content { position: absolute; inset: 0; padding: 54px 0 30px; overflow-x: hidden; overflow-y: auto; user-select: text; contain: content; }
+.app-overlay { position: absolute; inset: 0; z-index: 5; }
+.app-splash { position: absolute; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+.app-splash span { display: flex; font-size: 60px; }
+.app-splash .aicon { width: 120px; height: 120px; }
+/* Nyitáskor a tartalom elemei egymás után úsznak be */
+#app-content.entering :is(.app-title, .segmented, .group, .group-label, .group-note, .st-hero, .wx-now, .wx-card, .wx-grid,
+  .cal-head, .cal-grid, .analog, .keypad, .dial-actions, .m-art, .m-controls, .m-list, .game-board, .dpad, .mem-grid,
+  .ttt-board, .dice-area, .al-top, .ct-head, .ct-actions, .empty, .presets, .big-num, .round-row, .walls, .accents, .s-search) {
+  animation: rise .6s var(--spring-soft) backwards;
+}
+#app-content.entering :is(*):nth-child(2) { animation-delay: 30ms; }
+#app-content.entering :is(*):nth-child(3) { animation-delay: 60ms; }
+#app-content.entering :is(*):nth-child(4) { animation-delay: 90ms; }
+#app-content.entering :is(*):nth-child(5) { animation-delay: 120ms; }
+#app-content.entering :is(*):nth-child(6) { animation-delay: 150ms; }
+#app-content.entering :is(*):nth-child(7) { animation-delay: 180ms; }
+#app-content.entering :is(*):nth-child(n+8) { animation-delay: 210ms; }
+
+/* =====================================================================
+   Közös app-elemek
+   ===================================================================== */
+.app-title { padding: 6px 20px 16px; font: 800 calc(34px * var(--fs, 1)) var(--font-display); letter-spacing: -.035em; text-wrap: balance; }
+.app-bar { display: flex; align-items: center; justify-content: space-between; min-height: 40px; padding: 4px 16px 6px; }
+.app-bar b { font: 700 17px var(--font-display); }
+.link { color: var(--accent); font-size: 17px; font-weight: 600; }
+.danger { color: #ff453a !important; }
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+.mono { font-variant-numeric: tabular-nums; }
+.group {
+  margin: 0 16px 24px; overflow: hidden; border-radius: 22px; background: var(--card); contain: paint;
+  box-shadow: inset 0 0 0 1px var(--sep), 0 12px 30px -22px rgba(0,0,0,.6);
+}
+#screen.light .group { box-shadow: 0 1px 0 rgba(10,12,30,.04), 0 12px 30px -20px rgba(10,12,30,.25); }
+.group-label { margin: 0 32px 8px; font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.group-note { margin: -16px 32px 24px; font-size: 13px; line-height: 1.45; color: var(--muted); }
+.row {
+  position: relative; display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 52px; padding: 12px 16px;
+  font-size: calc(16px * var(--fs, 1)); touch-action: manipulation;
+}
+.row + .row::before { content: ""; position: absolute; top: 0; left: 16px; right: 0; height: 1px; background: var(--sep); }
+button.row { width: 100%; justify-content: flex-start; text-align: left; transition: background .25s ease; }
+button.row:active { background: var(--row-hi); transition-duration: 0s; }
+.row.col { flex-direction: column; align-items: flex-start; }
+.row .grow { flex: 1; min-width: 0; text-align: left; }
+.field { flex: 1; min-width: 0; background: transparent; border: 0; outline: 0; text-align: right; font-size: 16px; color: var(--muted); }
+.field[type="date"], .field[type="time"] { color-scheme: dark; }
+#screen.light :is(.field[type="date"], .field[type="time"], .al-time-in) { color-scheme: light; }
+.chev { display: flex; align-items: center; gap: 6px; font-size: 15px; color: var(--muted); }
+.chev::after { content: "›"; font-size: 22px; line-height: 1; opacity: .7; }
+.ri { width: 32px; height: 32px; border-radius: var(--icon-radius, 50% 50% 50% 18%); display: flex; align-items: center; justify-content: center; flex: none; font-size: 17px; color: #fff; box-shadow: inset 0 0 0 1px rgba(255,255,255,.16); }
+.avatar { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex: none; font-size: 26px; color: #fff; background: linear-gradient(135deg, #a18cd1, #6a5acd); box-shadow: inset 0 0 0 1px rgba(255,255,255,.2); }
+.empty { padding: 60px 30px; text-align: center; font-size: 15px; line-height: 1.5; color: var(--muted); }
+
+/* Kapcsoló: rugós gomb, nyomáskor megnyúlik */
+.switch { position: relative; flex: none; width: 52px; height: 32px; border-radius: 16px; background: var(--card2); transition: background .25s ease; box-shadow: inset 0 0 0 1px var(--sep); }
+.switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 28px; height: 28px; border-radius: 50%; background: #fff; box-shadow: 0 3px 8px rgba(0,0,0,.3); transition: left .5s var(--spring), width .25s ease; }
+.switch.on { background: var(--accent); box-shadow: 0 0 14px -2px var(--accent); }
+.switch.on::after { left: 22px; }
+.switch:active::after { width: 34px; }
+.switch.on:active::after { left: 16px; }
+
+/* Szegmentált választó */
+.segmented { display: flex; margin: 0 16px 18px; padding: 3px; border-radius: 14px; background: var(--card2); }
+.segmented button { flex: 1; padding: 7px 6px; border-radius: 11px; font-size: 13px; font-weight: 700; white-space: nowrap; }
+.segmented button.on { background: var(--seg-on); box-shadow: 0 2px 8px rgba(0,0,0,.18); animation: segIn .45s var(--spring); }
+.seg-row { padding: 10px 12px; }
+.seg-row .segmented { width: 100%; margin: 0; }
+
+/* Gombok */
+.btn { padding: 13px 24px; border-radius: 16px; font-size: 16px; font-weight: 800; color: #fff; background: var(--accent); box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 10px 24px -10px var(--accent); }
+/* Közös rugós „besüppedés” */
+:is(.btn, .st-btn, .ct-act, .preset, .shape-btn, .wall, .accent, .key, .ck, .pin-keys button, .dpad button, .ttt-cell, .al-day,
+  .wx-btn, .rec-btn, .call-btn, .m-play, .m-prev, .m-next, .round-btn, .pc, .p-undo, .sw-clear, .nc-clear, .tabbar button, .st-hero) {
+  transition: scale .45s var(--spring), background .2s ease, filter .2s ease;
+}
+:is(.btn, .st-btn, .ct-act, .preset, .shape-btn, .wall, .accent, .key, .ck, .pin-keys button, .dpad button, .ttt-cell, .al-day,
+  .wx-btn, .rec-btn, .call-btn, .m-play, .m-prev, .m-next, .round-btn, .pc, .p-undo, .sw-clear, .nc-clear, .tabbar button, .st-hero):active {
+  scale: .92; transition-duration: .1s;
+}
+
+/* Beállítások */
+.s-search { display: flex; align-items: center; gap: 8px; margin: 0 16px 18px; padding: 10px 13px; border-radius: 14px; font-size: 18px; color: var(--muted); background: var(--card2); }
+.s-search input { flex: 1; min-width: 0; background: none; border: 0; outline: 0; font-size: 16px; color: var(--app-fg); }
+.s-result small { display: block; font-size: 13px; color: var(--muted); }
+.walls { display: flex; flex-wrap: wrap; gap: 10px; }
+.wall { position: relative; width: 46px; height: 82px; border-radius: 12px; border: 3px solid transparent; box-shadow: inset 0 0 0 1px rgba(255,255,255,.12); }
+.wall.on { border-color: var(--accent); }
+.live-tag { position: absolute; left: 50%; bottom: 5px; transform: translateX(-50%); padding: 1px 4px; border-radius: 4px; font-size: 8px; font-weight: 800; letter-spacing: .5px; color: #fff; background: rgba(0,0,0,.4); }
+.accents { display: flex; flex-wrap: wrap; gap: 12px; }
+.accent { width: 36px; height: 36px; border-radius: 50%; border: 2px solid transparent; box-shadow: inset 0 0 0 3px var(--card); }
+.accent.on { border-color: var(--app-fg); }
+.shape-opts { display: flex; gap: 6px; width: 100%; }
+.shape-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 0; border-radius: 14px; font-size: 12px; font-weight: 600; }
+.shape-btn i { display: block; width: 40px; height: 40px; background: linear-gradient(135deg, var(--accent), #5e5ce6); }
+.shape-btn.on { background: var(--card2); font-weight: 800; }
+.range-row { display: flex; align-items: center; gap: 12px; width: 100%; }
+.range-row input { flex: 1; accent-color: var(--accent); }
+.range-row .ic { font-size: 20px; color: var(--muted); }
+.text-preview { font-size: calc(16px * var(--fs, 1)); line-height: 1.4; }
+.storage-bar { display: flex; width: 100%; height: 10px; margin-top: 8px; overflow: hidden; border-radius: 5px; background: var(--card2); }
+.storage-bar i { display: block; height: 100%; }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 8px; font-size: 12px; color: var(--muted); }
+.legend b { display: inline-block; width: 8px; height: 8px; margin-right: 4px; border-radius: 50%; }
+.usage-total { font: 800 36px var(--font-display); letter-spacing: -.03em; }
+.usage-bar { width: 100%; height: 8px; margin-top: 6px; overflow: hidden; border-radius: 4px; background: var(--card2); }
+.usage-bar i { display: block; height: 100%; border-radius: 4px; background: var(--accent); }
+.usage-app { flex: 1; min-width: 0; }
+.usage-app .top { display: flex; justify-content: space-between; gap: 8px; }
+.update-box { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 28px 16px; text-align: center; }
+.update-box b { font: 800 20px var(--font-display); }
+.update-logo { width: 68px; height: 68px; border-radius: 50%; background: var(--brand); -webkit-mask: radial-gradient(circle, transparent 54%, #000 56%); mask: radial-gradient(circle, transparent 54%, #000 56%); filter: drop-shadow(0 0 14px rgba(127,83,172,.6)); }
+.update-logo.spin { animation: spin 1s linear infinite; }
+.batt-big { font: 800 46px var(--font-display); letter-spacing: -.03em; }
+
+/* Félkövér szöveg (kisegítő lehetőség) */
+#screen.bold-text :is(.row, .bubble, .app-icon span, small, p, input, textarea, .segmented button, .group-note, .link) { font-weight: 800; }
+
+/* =====================================================================
+   Appok
+   ===================================================================== */
+
+/* ---------- Telefon ---------- */
+.ph { display: flex; flex-direction: column; height: 100%; }
+.ph-body { position: relative; flex: 1; min-height: 0; overflow-y: auto; }
+.ph-body .dialer { height: 100%; }
+.tabbar { display: flex; flex: none; padding-top: 8px; border-top: 1px solid var(--sep); }
+.tabbar button { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; font-weight: 700; color: var(--muted); }
+.tabbar button .ic { font-size: 24px; }
+.tabbar button.on { color: var(--accent); }
+.dialer { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 20px; padding-bottom: 16px; }
+.dial-num { max-width: 90%; min-height: 48px; overflow: hidden; white-space: nowrap; font: 400 38px var(--font-display); letter-spacing: .02em; }
+.dial-name { min-height: 20px; margin-top: -14px; font-size: 15px; }
+.keypad, .dial-actions { display: grid; grid-template-columns: repeat(3, 78px); gap: 14px 24px; justify-items: center; align-items: center; }
+.key { width: 78px; height: 78px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1; font: 400 34px var(--font-display); background: var(--card2); box-shadow: inset 0 1px 0 rgba(255,255,255,.06); }
+.key small { min-height: 9px; margin-top: 3px; font: 800 9px var(--font-ui); letter-spacing: 2px; }
+.key:active { filter: brightness(1.6); }
+.call-btn { width: 78px; height: 78px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; color: #fff; background: #34c759; box-shadow: 0 12px 26px -10px #34c759; }
+.call-btn.end { background: #ff3b30; box-shadow: 0 12px 26px -10px #ff3b30; }
+.call-btn.end span { display: inline-block; transform: rotate(135deg); }
+.del-btn, .dial-add { display: flex; align-items: center; justify-content: center; font-size: 26px; }
+.del-btn { color: var(--muted); }
+.call-screen { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; padding: 110px 20px 50px; color: #fff; background: radial-gradient(80% 50% at 50% 20%, #34405e, #0d0f16); }
+.call-name { font: 600 36px var(--font-display); letter-spacing: -.02em; }
+.call-status { margin-top: 6px; font-size: 17px; opacity: .7; font-variant-numeric: tabular-nums; }
+.call-grid { display: grid; grid-template-columns: repeat(3, 78px); gap: 24px; margin-bottom: 50px; }
+.call-grid button { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; }
+.call-grid button span { width: 78px; height: 78px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; background: rgba(255,255,255,.16); -webkit-backdrop-filter: var(--glass-fx); backdrop-filter: var(--glass-fx); box-shadow: var(--glass-edge); }
+.call-grid button.on span { background: #fff; color: #000; }
+.ct-row { gap: 12px; }
+.ct-row .grow b { display: block; font-size: 16px; font-weight: 700; }
+.ct-row .grow small { font-size: 13px; }
+.ct-av { width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex: none; font: 700 15px var(--font-display); color: #fff; box-shadow: inset 0 0 0 1px rgba(255,255,255,.2); }
+.ct-av.big { width: 100px; height: 100px; font-size: 38px; }
+.call-screen .ct-av.big { margin-bottom: 14px; }
+.ct-star { font-size: 16px; color: #ffd60a; }
+.ct-star .ic { fill: currentColor; }
+.ct-head { display: flex; flex-direction: column; align-items: center; gap: 6px; margin: 4px 0 20px; }
+.ct-head b { font: 700 28px var(--font-display); letter-spacing: -.02em; }
+.ct-actions { display: flex; gap: 10px; margin: 0 16px 22px; }
+.ct-act { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 11px 0; border-radius: 18px; font-size: 12px; font-weight: 700; color: var(--accent); background: var(--card); box-shadow: inset 0 0 0 1px var(--sep); }
+.ct-act span { font-size: 22px; }
+.ct-act.on { color: #ffd60a; }
+.ct-act.on .ic { fill: currentColor; }
+
+/* ---------- Üzenetek ---------- */
+.chat { display: flex; flex-direction: column; height: 100%; }
+.chat-head { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 0 0 10px; border-bottom: 1px solid var(--sep); font-size: 12px; font-weight: 700; }
+.chat-log { flex: 1; display: flex; flex-direction: column; gap: 6px; padding: 12px; overflow-y: auto; }
+.bubble { max-width: 76%; padding: 9px 14px; border-radius: 20px; font-size: calc(16px * var(--fs, 1)); line-height: 1.32; overflow-wrap: break-word; white-space: pre-line; }
+.bubble.me { align-self: flex-end; border-bottom-right-radius: 6px; color: #fff; background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 80%, #fff), var(--accent)); box-shadow: 0 8px 18px -12px var(--accent); }
+.bubble.bot { align-self: flex-start; border-bottom-left-radius: 6px; background: var(--card2); }
+.typing { display: flex; gap: 4px; padding: 12px 14px; }
+.typing span { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); animation: blink 1.2s infinite; }
+.typing span:nth-child(2) { animation-delay: .2s; }
+.typing span:nth-child(3) { animation-delay: .4s; }
+.chat-input { display: flex; gap: 8px; padding: 8px 12px 4px; }
+.chat-input input { flex: 1; min-width: 0; padding: 9px 15px; border: 1px solid var(--sep); border-radius: 22px; outline: 0; font-size: 16px; background: var(--card); }
+.send { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex: none; font-size: 18px; color: #fff; background: var(--accent); }
+.send .ic { stroke-width: 2.6; }
+
+/* ---------- Számológép ---------- */
+.calc { height: 100%; display: flex; flex-direction: column; justify-content: flex-end; padding: 0 16px 14px; }
+.calc-display { padding: 0 10px 10px; overflow: hidden; text-align: right; white-space: nowrap; font: 300 80px var(--font-display); letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+.calc-keys { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.ck { aspect-ratio: 1; border-radius: 50%; font: 500 30px var(--font-display); color: #fff; background: #2a2c36; box-shadow: inset 0 1px 0 rgba(255,255,255,.08); }
+.ck:active { filter: brightness(1.4); }
+.ck.fn { color: #000; background: #b4b6c0; }
+.ck.op { font-size: 34px; background: linear-gradient(160deg, #ffb340, #ff8a00); box-shadow: 0 10px 20px -12px #ff9f0a; }
+.ck.op.active { color: #ff9f0a; background: #fff; }
+.ck.zero { grid-column: span 2; aspect-ratio: auto; padding-left: 28px; border-radius: 999px; text-align: left; }
+
+/* ---------- Óra ---------- */
+.analog { position: relative; width: 214px; height: 214px; margin: 4px auto 22px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, var(--card2), var(--card)); box-shadow: inset 0 0 0 1px var(--sep), 0 20px 40px -20px rgba(0,0,0,.6); }
+.analog .num { position: absolute; transform: translate(-50%, -50%); font: 600 16px var(--font-display); }
+.analog .hand { position: absolute; left: 50%; bottom: 50%; transform-origin: 50% 100%; border-radius: 3px; background: var(--app-fg); }
+.hand.h { width: 6px; height: 56px; margin-left: -3px; }
+.hand.m { width: 4px; height: 82px; margin-left: -2px; }
+.hand.s { width: 2px; height: 90px; margin-left: -1px; background: #ff9f0a; }
+.analog .dot { position: absolute; left: 50%; top: 50%; width: 12px; height: 12px; margin: -6px; border-radius: 50%; background: #ff9f0a; }
+.city-time { font: 300 28px var(--font-display); font-variant-numeric: tabular-nums; }
+.big-num { margin: 30px 0; text-align: center; font: 200 70px var(--font-display); letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.big-num.hint { font-size: 24px; color: var(--muted); }
+.round-row { display: flex; justify-content: space-between; padding: 0 24px 24px; }
+.round-row.center { justify-content: center; }
+.round-btn { width: 82px; height: 82px; border-radius: 50%; font-size: 16px; font-weight: 700; background: var(--card2); box-shadow: 0 0 0 3px var(--app-bg), 0 0 0 5px var(--card2); }
+.round-btn:disabled { opacity: .5; cursor: default; }
+.round-btn.green { color: #34c759; background: #163a20; box-shadow: 0 0 0 3px var(--app-bg), 0 0 0 5px #163a20; }
+.round-btn.red { color: #ff453a; background: #3d1716; box-shadow: 0 0 0 3px var(--app-bg), 0 0 0 5px #3d1716; }
+.presets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 0 20px; }
+.preset { padding: 18px 0; border-radius: 18px; font-size: 16px; font-weight: 800; background: var(--card); box-shadow: inset 0 0 0 1px var(--sep); }
+.preset:active { background: var(--card2); }
+.al-top { display: flex; justify-content: center; margin-bottom: 16px; }
+.al-top .btn { display: inline-flex; align-items: center; gap: 6px; }
+.al-row { cursor: pointer; }
+.al-info { display: flex; flex-direction: column; }
+.al-time { font: 300 42px/1.1 var(--font-display); letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.al-time.off { opacity: .4; }
+.al-time-row { justify-content: center; }
+.al-time-in { text-align: center; font: 300 46px var(--font-display); color: var(--app-fg); background: none; border: 0; outline: 0; color-scheme: dark; }
+.al-days { display: flex; gap: 6px; width: 100%; margin-top: 6px; }
+.al-day { flex: 1; height: 38px; border-radius: 50%; font-size: 12px; font-weight: 800; background: var(--card2); }
+.al-day.on { color: #fff; background: var(--accent); }
+.alarm-ring {
+  position: absolute; inset: 0; z-index: 139; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: #fff;
+  background: radial-gradient(circle at 50% 35%, #ff9f0a66, transparent 60%), linear-gradient(170deg, #1a1a2e, #000); animation: fadeIn .3s;
+}
+.ar-pulse { width: 112px; height: 112px; margin-bottom: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 56px; color: #000; background: #ff9f0a; animation: alarmPulse 1.3s infinite; }
+.alarm-ring small { font-size: 16px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; opacity: .75; }
+.alarm-ring b { font: 700 92px/1 var(--font-display); letter-spacing: -.05em; font-variant-numeric: tabular-nums; }
+.alarm-ring > span { min-height: 24px; font-size: 18px; }
+.ar-btns { display: flex; flex-direction: column; gap: 12px; width: 70%; margin-top: 50px; }
+.ar-btns button { padding: 16px; border-radius: 30px; font-size: 17px; font-weight: 800; color: #fff; }
+.ar-snooze { background: rgba(255,255,255,.16); box-shadow: var(--glass-edge); }
+.ar-stop { color: #000 !important; background: #ff9f0a; }
+
+/* ---------- Jegyzetek ---------- */
+.note-prev { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.note-prev b, .note-prev small { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.note-editor { height: calc(100% - 50px); }
+.note-editor textarea { width: 100%; height: 100%; padding: 4px 20px; resize: none; background: transparent; border: 0; outline: 0; font-size: calc(17px * var(--fs, 1)); line-height: 1.5; }
+
+/* ---------- Kamera és Fotók ---------- */
+.cam { position: absolute; inset: 0; display: flex; flex-direction: column; background: #000; }
+.cam video { flex: 1; width: 100%; min-height: 0; object-fit: cover; transform: scaleX(-1); }
+.cam-msg { flex: 1; display: flex; align-items: center; justify-content: center; padding: 30px; text-align: center; line-height: 1.5; color: #aaa; }
+.cam-bar { flex: none; height: 150px; display: flex; align-items: center; justify-content: space-around; padding-bottom: 22px; }
+.shutter { width: 72px; height: 72px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 4px #000, 0 0 0 7px #fff; transition: scale .3s var(--spring); }
+.shutter:active { scale: .9; }
+.shutter:disabled { opacity: .4; }
+.cam-thumb { width: 52px; height: 52px; border-radius: 12px; background: #222 center / cover; }
+.cam-flash { position: absolute; inset: 0; pointer-events: none; background: #fff; opacity: 0; transition: opacity .35s; }
+.cam-flash.on { opacity: 1; transition: none; }
+.gal-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
+.gal-grid img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; cursor: pointer; }
+.gal-count { padding: 14px; text-align: center; font-size: 13px; color: var(--muted); }
+.viewer { position: absolute; inset: 0; display: flex; flex-direction: column; padding-top: 54px; background: var(--app-bg); }
+.viewer img { flex: 1; width: 100%; min-height: 0; padding-bottom: 30px; object-fit: contain; }
+
+/* ---------- Naptár ---------- */
+.cal-head { display: flex; justify-content: space-between; align-items: center; padding: 0 20px 12px; }
+.cal-head .link { padding: 0 8px; font-size: 28px; }
+.cal-title { cursor: pointer; font: 400 24px var(--font-display); letter-spacing: -.02em; }
+.cal-title b { font-weight: 800; color: #ff3b5c; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); padding: 0 10px; text-align: center; }
+.cal-grid .dow { padding: 6px 0; font-size: 12px; font-weight: 800; color: var(--muted); }
+.cal-grid .d { position: relative; height: 46px; display: flex; flex-direction: column; align-items: center; justify-content: center; font: 500 18px var(--font-display); color: inherit; }
+.cal-grid .d span { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.cal-grid .d.we { color: var(--muted); }
+.cal-grid .d.today span { font-weight: 700; color: #fff; background: #ff3b5c; box-shadow: 0 8px 18px -8px #ff3b5c; }
+.cal-grid .d.sel:not(.today) span { font-weight: 800; background: var(--card2); }
+.cal-grid .d i { position: absolute; bottom: 3px; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
+.ev-row { gap: 12px; }
+.ev-time { flex: none; width: 76px; font-size: 14px; font-weight: 800; color: var(--accent); }
+.ev-empty { width: 100%; text-align: left; }
+
+/* ---------- Időjárás ---------- */
+.wx { position: absolute; inset: 0; padding: 54px 16px 30px; overflow-y: auto; color: #fff; }
+.wx-msg { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; text-align: center; font-size: 16px; }
+.wx-msg > .ic { font-size: 60px; }
+.wx-spin { width: 40px; height: 40px; border-radius: 50%; border: 4px solid rgba(255,255,255,.3); border-top-color: #fff; animation: spin 1s linear infinite; }
+.wx-top { display: flex; justify-content: flex-end; gap: 8px; }
+.wx-btn { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #fff; background: rgba(255,255,255,.16); box-shadow: var(--glass-edge); }
+.wx-now { display: flex; flex-direction: column; align-items: center; margin: 0 0 24px; text-shadow: 0 2px 14px rgba(0,0,0,.2); }
+.wx-city { font: 600 30px var(--font-display); letter-spacing: -.02em; }
+.wx-temp { margin-left: 24px; font: 200 104px/1 var(--font-display); letter-spacing: -.06em; }
+.wx-desc { display: flex; align-items: center; gap: 6px; font-size: 18px; font-weight: 700; }
+.wx-hl { margin-top: 2px; font-size: 16px; opacity: .9; }
+.wx-card { margin-bottom: 12px; padding: 13px 15px; border-radius: 22px; background: rgba(255,255,255,.13); -webkit-backdrop-filter: var(--glass-fx); backdrop-filter: var(--glass-fx); box-shadow: var(--glass-edge); }
+.wx-label { display: flex; align-items: center; gap: 5px; margin-bottom: 8px; font-size: 11px; font-weight: 800; letter-spacing: .1em; opacity: .72; }
+.wx-hours { display: flex; gap: 16px; padding-bottom: 2px; overflow-x: auto; scrollbar-width: none; }
+.wx-hours::-webkit-scrollbar { display: none; }
+.wx-hours div { flex: none; display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 22px; }
+.wx-hours small { font-size: 13px; font-weight: 700; }
+.wx-hours b { font: 600 17px var(--font-display); }
+.wx-day { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid rgba(255,255,255,.16); font-size: 17px; }
+.wx-label + .wx-day { border-top: 0; }
+.wx-dname { width: 42px; font-weight: 700; }
+.wx-dicon { width: 44px; display: flex; flex-direction: column; align-items: center; font-size: 22px; }
+.wx-dicon small { font-size: 10px; font-weight: 800; color: #8fd3ff; }
+.wx-min { width: 34px; text-align: right; opacity: .7; font-family: var(--font-display); }
+.wx-max { width: 34px; font-family: var(--font-display); }
+.wx-range { position: relative; flex: 1; height: 5px; border-radius: 3px; background: rgba(0,0,0,.22); }
+.wx-range i { position: absolute; top: 0; bottom: 0; border-radius: 3px; background: linear-gradient(90deg, #8fd3ff, #ffd60a, #ff9f0a); }
+.wx-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
+.wx-grid .wx-card b { font: 500 30px var(--font-display); letter-spacing: -.02em; }
+.wx-grid .wx-card small { display: block; margin-top: 4px; font-size: 12px; opacity: .8; }
+.wx-src { text-align: center; font-size: 11px; opacity: .6; }
+.wx-find { position: absolute; inset: 0; padding: 60px 16px; overflow-y: auto; color: #fff; background: rgba(10,12,20,.94); }
+.wf-res { margin-top: 14px; }
+
+/* ---------- Zene ---------- */
+.music { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 6px 20px 0; }
+.m-art {
+  position: relative; flex: none; width: 216px; height: 216px; margin: 8px 0 14px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: conic-gradient(var(--c1), var(--c2), var(--c1)); box-shadow: 0 30px 60px -20px var(--c1), 0 0 0 1px rgba(255,255,255,.1);
+}
+.m-art.playing { animation: spin 6s linear infinite; }
+.m-art::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: repeating-radial-gradient(circle, rgba(0,0,0,.12) 0 2px, transparent 2px 6px); }
+.m-disc { z-index: 1; width: 66px; height: 66px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; color: var(--app-fg); background: var(--app-bg); }
+.m-title { font: 800 23px var(--font-display); letter-spacing: -.02em; }
+.m-sub { font-size: 15px; }
+.m-viz { width: 100%; height: 56px; margin-top: 6px; }
+.m-progress { width: 100%; height: 5px; overflow: hidden; border-radius: 3px; background: var(--card2); }
+.m-progress i { display: block; height: 100%; background: var(--app-fg); transition: width .15s linear; }
+.m-controls { display: flex; align-items: center; gap: 34px; margin: 10px 0 16px; font-size: 32px; }
+.m-play { width: 74px; height: 74px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; color: var(--app-bg); background: var(--app-fg); box-shadow: 0 12px 30px -12px rgba(0,0,0,.6); }
+.m-list { width: 100%; margin: 0 0 20px; }
+.m-list .row.on { color: var(--accent); }
+.m-dot { flex: none; width: 34px; height: 34px; border-radius: var(--icon-radius); }
+
+/* ---------- Kígyó ---------- */
+.game { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 6px 16px 0; }
+.game-top { width: 100%; display: flex; justify-content: space-between; font-size: 17px; }
+.game-top b { font-family: var(--font-display); }
+.game-board { position: relative; width: 100%; display: flex; justify-content: center; }
+.game-board canvas { border-radius: 20px; touch-action: none; box-shadow: 0 0 0 1px rgba(255,255,255,.08), 0 24px 60px rgba(0,0,0,.6); }
+.game-msg {
+  position: absolute; inset: 0; width: min(100%, 330px); margin: auto; padding: 24px; border-radius: 20px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; text-align: center;
+  background: rgba(13,15,23,.72); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+}
+.game-msg b { font: 800 30px var(--font-display); background: linear-gradient(90deg, #7f5af0, #2cb67d); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.dpad { display: grid; grid-template-columns: repeat(3, 64px); grid-template-rows: repeat(3, 54px); gap: 6px; }
+.dpad button { border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 26px; color: #fff; background: #1d2030; box-shadow: inset 0 1px 0 rgba(255,255,255,.08); }
+.dpad button:active { background: #7f5af0; }
+
+/* ---------- Rajz ---------- */
+.paint { display: flex; flex-direction: column; height: 100%; }
+.paint-wrap { flex: 1; min-height: 0; margin: 0 12px; overflow: hidden; border-radius: 22px; box-shadow: 0 0 0 1px var(--sep); }
+.paint-wrap canvas { display: block; touch-action: none; cursor: crosshair; }
+.paint-tools { display: flex; align-items: center; gap: 10px; padding: 12px 14px 4px; }
+.p-undo { flex: none; width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; background: var(--card2); }
+.paint-colors { flex: 1; display: flex; justify-content: space-between; gap: 6px; }
+.pc { width: 30px; height: 30px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(128,128,128,.4); }
+.pc.on { scale: 1.2; box-shadow: 0 0 0 2px var(--app-bg), 0 0 0 4px var(--app-fg); }
+.paint-size { display: flex; align-items: center; gap: 12px; padding: 6px 18px 4px; }
+.paint-size input { flex: 1; accent-color: var(--accent); }
+.p-dot { display: block; flex: none; max-width: 36px; max-height: 36px; border-radius: 50%; box-shadow: 0 0 0 1px rgba(128,128,128,.4); }
+
+/* ---------- Áruház ---------- */
+.st-hero {
+  position: relative; width: calc(100% - 32px); min-height: 160px; margin: 0 16px 18px; padding: 22px; overflow: hidden; border-radius: 26px;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 4px; text-align: left; color: #fff;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.18), 0 20px 40px -18px rgba(0,0,0,.6);
+}
+.st-hero small { font-size: 11px; font-weight: 800; letter-spacing: .14em; opacity: .85; }
+.st-hero b { font: 800 30px var(--font-display); letter-spacing: -.03em; }
+.st-hero span { max-width: 62%; font-size: 14px; line-height: 1.38; opacity: .9; }
+.st-hero .st-hero-icon { position: absolute; right: -14px; bottom: -18px; max-width: none; font-size: 136px; opacity: .3; transform: rotate(-12deg); }
+.st-hero.st-play { background: linear-gradient(135deg, #1a73e8, #34a853); }
+.st-row { gap: 10px; }
+.st-info { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; text-align: left; }
+.st-info b { display: block; font-size: 16px; font-weight: 800; }
+.st-info small { font-size: 13px; }
+.st-icon { flex: none; width: 50px; height: 50px; border-radius: var(--icon-radius); display: flex; align-items: center; justify-content: center; font-size: 25px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.18); }
+.st-icon.big { width: 100px; height: 100px; font-size: 50px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.18), 0 14px 30px -10px rgba(0,0,0,.5); }
+.st-btn { flex: none; min-width: 90px; height: 34px; padding: 0 15px; border-radius: 17px; font-size: 14px; font-weight: 800; }
+.st-btn.get { color: #fff; background: var(--accent); box-shadow: 0 8px 18px -10px var(--accent); }
+.st-btn.open { color: var(--accent); background: var(--card2); }
+.st-btn.busy { width: 34px; min-width: 34px; padding: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: conic-gradient(var(--accent) calc(var(--p, 0) * 1%), var(--card2) 0); }
+.st-btn.busy i { position: relative; width: 26px; height: 26px; border-radius: 50%; background: var(--card); }
+.st-btn.busy i::after { content: ""; position: absolute; inset: 9px; border-radius: 2px; background: var(--accent); }
+.st-detail { position: absolute; inset: 0; padding-top: 54px; overflow-y: auto; color: var(--app-fg); background: var(--app-bg); }
+.st-head { display: flex; align-items: center; gap: 18px; padding: 8px 20px 18px; }
+.st-head b { display: block; font: 800 26px var(--font-display); letter-spacing: -.02em; }
+.st-actions { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+.st-del { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 17px; color: #ff453a; background: var(--card2); }
+.st-facts { display: flex; margin: 0 16px 20px; border-top: 1px solid var(--sep); border-bottom: 1px solid var(--sep); }
+.st-facts div { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 12px 4px; }
+.st-facts div + div { border-left: 1px solid var(--sep); }
+.st-facts small { font-size: 10px; font-weight: 800; letter-spacing: .1em; color: var(--muted); }
+.st-facts b { font: 700 15px var(--font-display); }
+.st-desc { margin: 0 32px 30px; font-size: calc(15px * var(--fs, 1)); line-height: 1.55; }
+
+/* ---------- Zseblámpa ---------- */
+.torch { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; background: #000; transition: background .25s; }
+.torch.on { background: #fff; }
+.torch-btn { width: 124px; height: 124px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 54px; color: #fff; background: #1c1d24; box-shadow: 0 0 0 6px #2a2c36; transition: .25s; }
+.torch.on .torch-btn { color: #4a3000; background: #ffd60a; box-shadow: 0 0 0 6px #ffe680, 0 0 90px #ffd60a; }
+.torch.on .torch-status { color: #555; }
+
+/* ---------- Dobókocka ---------- */
+.dice-area { display: flex; justify-content: center; gap: 24px; margin: 40px 0 18px; cursor: pointer; }
+.die { width: 112px; height: 112px; padding: 14px; border-radius: 26px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; background: linear-gradient(145deg, #fff, #e3e4ea); box-shadow: 0 18px 34px rgba(0,0,0,.35), inset 0 -4px 0 rgba(0,0,0,.08); }
+.die i { margin: 4px; border-radius: 50%; }
+.die i.on { background: #14151c; }
+.dice-area.rolling .die { animation: shake .14s infinite; }
+.dice-total { min-height: 30px; text-align: center; font: 800 24px var(--font-display); }
+.dice-go { display: flex; justify-content: center; margin: 22px 0; }
+
+/* ---------- Memória ---------- */
+.mem-top { display: flex; justify-content: space-between; padding: 0 20px 14px; font-size: 16px; }
+.mem-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 0 16px; perspective: 800px; }
+.mem-card { position: relative; aspect-ratio: 1; transform-style: preserve-3d; transition: transform .5s var(--spring); }
+.mem-card.up { transform: rotateY(180deg); }
+.mem-card span { position: absolute; inset: 0; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 30px; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.mem-back { font-size: 22px !important; color: rgba(255,255,255,.6); background: linear-gradient(135deg, #43e97b, #38a3f9); box-shadow: inset 0 0 0 1px rgba(255,255,255,.2); }
+.mem-front { transform: rotateY(180deg); background: var(--card); box-shadow: inset 0 0 0 1px var(--sep); }
+.mem-card.done .mem-front { box-shadow: inset 0 0 0 3px #34c759; }
+
+/* ---------- Átváltó ---------- */
+.conv { position: relative; }
+.conv .row { min-height: 74px; }
+.conv-in, .conv-out { flex: 1; min-width: 0; font: 600 30px var(--font-display); color: var(--app-fg); background: none; border: 0; outline: 0; }
+.conv select { padding: 8px 10px; border: 0; border-radius: 12px; outline: 0; font-size: 16px; font-weight: 700; color: var(--accent); background: var(--card2); }
+.conv-swap { position: absolute; left: 50%; top: 50%; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #fff; background: var(--accent); box-shadow: 0 0 0 4px var(--card); transform: translate(-50%, -50%) rotate(90deg); }
+
+/* ---------- Iránytű ---------- */
+.compass { display: flex; flex-direction: column; align-items: center; padding-top: 20px; }
+.cmp-deg { font: 200 60px var(--font-display); letter-spacing: -.03em; }
+.cmp-dir { margin-bottom: 26px; font-size: 18px; }
+.cmp-rose { position: relative; width: 272px; height: 272px; }
+.cmp-dial { position: absolute; inset: 0; border-radius: 50%; border: 2px solid #3a3c48; transition: transform .2s linear; }
+.cmp-dial i { position: absolute; left: 50%; top: 0; width: 2px; height: 50%; margin-left: -1px; transform-origin: 50% 100%; }
+.cmp-dial i::before { content: ""; display: block; width: 2px; height: 12px; background: #636672; }
+.cmp-dial b { position: absolute; transform: translate(-50%, -50%); font: 800 22px var(--font-display); }
+.cmp-dial .n { left: 50%; top: 13%; color: #ff453a; }
+.cmp-dial .e { left: 87%; top: 50%; }
+.cmp-dial .s { left: 50%; top: 87%; }
+.cmp-dial .w { left: 13%; top: 50%; }
+.cmp-needle { position: absolute; left: 50%; top: -14px; width: 4px; height: 30px; margin-left: -2px; border-radius: 2px; background: #ff453a; }
+.cmp-msg { padding: 22px 30px 10px; text-align: center; font-size: 14px; line-height: 1.5; }
+
+/* ---------- Amőba ---------- */
+.ttt-status { margin-bottom: 18px; text-align: center; font: 800 21px var(--font-display); }
+.ttt-board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 282px; margin: 0 auto; }
+.ttt-cell { aspect-ratio: 1; border-radius: 22px; display: flex; align-items: center; justify-content: center; font-size: 56px; color: #ff375f; background: var(--card); box-shadow: inset 0 0 0 1px var(--sep); }
+.ttt-cell .ic { stroke-width: 3; }
+.ttt-o { width: 54%; height: 54%; border-radius: 50%; border: 7px solid #0a84ff; }
+.ttt-cell.win { background: color-mix(in srgb, #34c759 35%, var(--card)); }
+.ttt-score { margin-top: 16px; text-align: center; font-size: 14px; }
+
+/* ---------- Diktafon ---------- */
+.rec { display: flex; flex-direction: column; height: 100%; }
+.rec-list { flex: 1; min-height: 0; overflow-y: auto; }
+.rec-row { gap: 12px; }
+.rec-row .grow b { display: block; }
+.rec-play { flex: none; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; color: #fff; background: var(--accent); }
+.rec-panel { flex: none; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 10px 0 6px; border-top: 1px solid var(--sep); }
+.rec-wave { width: calc(100% - 40px); height: 60px; }
+.rec-time { font: 300 32px var(--font-display); font-variant-numeric: tabular-nums; }
+.rec-btn { width: 74px; height: 74px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 4px solid var(--app-fg); }
+.rec-btn i { width: 56px; height: 56px; border-radius: 50%; background: #ff3b30; transition: all .2s; }
+.rec-btn.on i { width: 28px; height: 28px; border-radius: 6px; }
+
+/* =====================================================================
+   Különleges rétegek: töltés, varázsló, újdonságok
+   ===================================================================== */
+.charge-anim {
+  position: absolute; inset: 0; z-index: 132; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; pointer-events: none;
+  color: #fff; background: rgba(0,0,0,.6); animation: fadeIn .3s; transition: opacity .45s;
+}
+.charge-anim.out { opacity: 0; }
+.charge-anim > span { font-size: 16px; font-weight: 700; opacity: .85; }
+.ca-ring { position: relative; width: 194px; height: 194px; padding: 10px; border-radius: 50%; background: conic-gradient(#34c759 calc(var(--p) * 1%), rgba(255,255,255,.12) 0); box-shadow: 0 0 70px rgba(52,199,89,.55); animation: caGrow .6s var(--spring); }
+.ca-in { width: 100%; height: 100%; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; background: #0b0d12; }
+.ca-in .ic { font-size: 40px; color: #34c759; animation: pulse 1s infinite; }
+.ca-in b { font: 800 38px var(--font-display); }
+
 #setup {
-  position: absolute; inset: 0; z-index: 141; display: flex; flex-direction: column; overflow: hidden;
-  background: #070b1e; color: #fff; animation: fadeIn .5s; transition: opacity .5s ease, transform .6s var(--spring-soft);
+  position: absolute; inset: 0; z-index: 141; display: flex; flex-direction: column; overflow: hidden; color: #fff;
+  background: #070b1e; animation: fadeIn .5s; transition: opacity .5s ease, transform .6s var(--spring-soft);
 }
 #setup.out { opacity: 0; transform: scale(1.08); pointer-events: none; }
-#setup .aurora-fx.on { display: block; z-index: 0; }
 .su-track { position: relative; z-index: 1; flex: 1; display: flex; min-height: 0; transition: transform .6s var(--spring-soft); will-change: transform; }
-.su-step { flex: none; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 50px 28px 70px; text-align: center; overflow-y: auto; }
+.su-step { flex: none; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 50px 28px 70px; overflow-y: auto; text-align: center; }
 .su-step > * { opacity: 0; translate: 0 18px; transition: opacity .4s ease, translate .6s var(--spring-soft); }
 .su-step.cur > * { opacity: 1; translate: 0 0; }
 .su-step.cur > :nth-child(2) { transition-delay: 60ms; }
@@ -1381,54 +1166,97 @@ button.row:active { background: var(--card2); transition-duration: 0s; }
 .su-step.cur > :nth-child(4) { transition-delay: 180ms; }
 .su-step.cur > :nth-child(5) { transition-delay: 240ms; }
 .su-step.cur > :nth-child(n+6) { transition-delay: 300ms; }
-.su-step h1 { font-size: 34px; font-weight: 800; line-height: 1.1; }
-.su-step h2 { font-size: 28px; font-weight: 800; }
+.su-step h1 { font: 800 36px/1.08 var(--font-display); letter-spacing: -.035em; text-wrap: balance; }
+.su-step h2 { font: 800 30px var(--font-display); letter-spacing: -.03em; text-wrap: balance; }
 .su-step p { max-width: 300px; font-size: 16px; line-height: 1.45; opacity: .8; }
-.su-logo {
-  width: 110px; height: 110px; border-radius: 50%; margin-bottom: 10px;
-  background: conic-gradient(#7f53ac, #2a5298, #38ef7d, #ffd200, #7f53ac);
-  -webkit-mask: radial-gradient(circle, transparent 54%, #000 56%); mask: radial-gradient(circle, transparent 54%, #000 56%);
-  animation: spin 3s linear infinite;
-}
-.su-ic { width: 76px; height: 76px; margin-bottom: 4px; border-radius: var(--icon-radius); display: flex; align-items: center; justify-content: center; font-size: 38px; background: linear-gradient(135deg, var(--accent), #5e5ce6); }
-.su-ic.su-done { background: linear-gradient(135deg, #ffd60a, #ff9f0a); }
-.su-lang, .su-mode { display: flex; gap: 6px; padding: 4px; border-radius: 16px; background: rgba(255,255,255,.12); }
-.su-lang button, .su-mode button { display: flex; align-items: center; gap: 6px; padding: 10px 18px; border-radius: 12px; color: #fff; font-size: 15px; font-weight: 600; transition: background .2s; }
-.su-lang button.on, .su-mode button.on { background: #fff; color: #000; }
-.su-in { width: 100%; max-width: 300px; padding: 14px 16px; border: 0; outline: 0; border-radius: 14px; background: rgba(255,255,255,.14); color: #fff; font-size: 17px; text-align: center; }
+.su-logo, .wn-logo { border-radius: 50%; background: var(--brand); -webkit-mask: radial-gradient(circle, transparent 54%, #000 56%); mask: radial-gradient(circle, transparent 54%, #000 56%); filter: drop-shadow(0 0 22px rgba(127,83,172,.6)); animation: spin 3s linear infinite; }
+.su-logo { width: 112px; height: 112px; margin-bottom: 10px; }
+.su-ic { width: 78px; height: 78px; margin-bottom: 4px; border-radius: var(--icon-radius); display: flex; align-items: center; justify-content: center; font-size: 38px; background: linear-gradient(135deg, var(--accent), #5e5ce6); box-shadow: inset 0 0 0 1px rgba(255,255,255,.2), 0 16px 34px -12px var(--accent); }
+.su-ic.su-done { background: linear-gradient(135deg, #ffd60a, #ff9f0a); box-shadow: inset 0 0 0 1px rgba(255,255,255,.2), 0 16px 34px -12px #ff9f0a; }
+.su-lang, .su-mode { display: flex; gap: 6px; padding: 4px; border-radius: 18px; background: rgba(255,255,255,.12); box-shadow: var(--glass-edge); }
+.su-lang button, .su-mode button { display: flex; align-items: center; gap: 6px; padding: 10px 18px; border-radius: 14px; font-size: 15px; font-weight: 700; color: #fff; transition: background .2s; }
+.su-lang button.on, .su-mode button.on { color: #000; background: #fff; }
+.su-in { width: 100%; max-width: 300px; padding: 14px 16px; border: 0; border-radius: 16px; outline: 0; text-align: center; font-size: 17px; color: #fff; background: rgba(255,255,255,.14); box-shadow: var(--glass-edge); }
 .su-in::placeholder { color: rgba(255,255,255,.55); }
 .su-in.bad { box-shadow: 0 0 0 2px #ff453a; animation: shake .4s; }
 .su-pin { font-size: 26px; letter-spacing: 14px; }
-.su-next { min-width: 220px; margin-top: 8px; padding: 15px 24px; border-radius: 16px; background: #fff; color: #000; font-size: 17px; font-weight: 700; transition: scale .4s var(--spring); }
+.su-next { min-width: 220px; margin-top: 8px; padding: 15px 24px; border-radius: 18px; font-size: 17px; font-weight: 800; color: #000; background: #fff; box-shadow: 0 14px 30px -14px rgba(255,255,255,.6); transition: scale .4s var(--spring); }
 .su-next:active { scale: .95; transition-duration: .1s; }
-.su-skip { padding: 6px; color: rgba(255,255,255,.75); font-size: 15px; }
+.su-skip { padding: 6px; font-size: 15px; font-weight: 600; color: rgba(255,255,255,.75); }
 .su-walls { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; width: 100%; max-width: 320px; }
-.su-wall { position: relative; aspect-ratio: 9 / 16; border-radius: 10px; border: 3px solid transparent; transition: scale .35s var(--spring); }
+.su-wall { position: relative; aspect-ratio: 9 / 16; border: 3px solid transparent; border-radius: 12px; transition: scale .35s var(--spring); }
 .su-wall.on { border-color: #fff; scale: 1.06; }
 .su-accs { display: flex; gap: 10px; }
-.su-acc { width: 32px; height: 32px; border-radius: 50%; border: 3px solid transparent; transition: scale .35s var(--spring); }
+.su-acc { width: 34px; height: 34px; border: 3px solid transparent; border-radius: 50%; transition: scale .35s var(--spring); }
 .su-acc.on { border-color: #fff; scale: 1.15; }
-.su-tips { list-style: none; display: flex; flex-direction: column; gap: 10px; max-width: 330px; text-align: left; }
-.su-tips li { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: 14px; background: rgba(255,255,255,.1); font-size: 14px; line-height: 1.4; }
+.su-tips { display: flex; flex-direction: column; gap: 10px; max-width: 330px; list-style: none; text-align: left; }
+.su-tips li { display: flex; align-items: flex-start; gap: 10px; padding: 11px 13px; border-radius: 16px; font-size: 14px; line-height: 1.4; background: rgba(255,255,255,.1); box-shadow: var(--glass-edge); }
 .su-tips li .ic { flex: none; margin-top: 2px; font-size: 18px; }
 .su-dots { position: absolute; left: 0; right: 0; bottom: 28px; z-index: 2; display: flex; justify-content: center; gap: 8px; }
-.su-dots i { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,.3); cursor: pointer; transition: scale .3s var(--spring), background .2s; }
+.su-dots i { width: 8px; height: 8px; border-radius: 50%; cursor: pointer; background: rgba(255,255,255,.3); transition: scale .3s var(--spring), background .2s; }
 .su-dots i.on { background: #fff; scale: 1.4; }
-/* A Ma nézet és az Alkalmazástár görgethető része a lapozópöttyök fölött ér véget */
-#page-today, #page-lib { height: calc(100% - 186px); padding-bottom: 20px; -webkit-mask: linear-gradient(#000 calc(100% - 26px), transparent); mask: linear-gradient(#000 calc(100% - 26px), transparent); }
-#screen.on-lib #spot-pill, #screen.on-today #spot-pill { opacity: 0; pointer-events: none; }
-#spot-pill { transition: opacity .2s; }
-#page-dots { bottom: 136px; }
-.tw-wx-ic { display: flex; font-size: 66px; }
-.tw-wx-ic .ic { width: 1em; height: 1em; }
-.tw-wx span.tw-wx-ic { font-size: 66px; line-height: 1; }
-#page-dots { bottom: 178px; }
-#page-today, #page-lib { height: calc(100% - 196px); }
 
-/* ---------- Frissítés utáni „Újdonságok” ablak ---------- */
-#whatsnew { position: absolute; inset: 0; z-index: 138; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(5,7,15,.82); animation: fadeIn .3s; transition: opacity .35s; }
+#whatsnew { position: absolute; inset: 0; z-index: 138; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(5,7,15,.6); -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px); animation: fadeIn .3s; transition: opacity .35s; }
 #whatsnew.out { opacity: 0; }
-.wn-card { width: 100%; max-width: 360px; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 26px 20px 20px; border-radius: 30px; background: #12162a; color: #fff; text-align: center; animation: caGrow .55s var(--spring); }
-.wn-card small { font-size: 13px; opacity: .7; font-variant-numeric: tabular-nums; }
-.wn-card h2 { font-size: 24px; font-weight: 800; margin: 0 0 6px; }
-.wn-logo { width: 70px; height: 70px; margin-bottom: 0; }
+.wn-card { width: 100%; max-width: 360px; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 26px 20px 20px; border-radius: 32px; text-align: center; color: #fff; background: rgba(18,22,42,.85); box-shadow: var(--glass-edge), 0 30px 60px rgba(0,0,0,.5); animation: caGrow .55s var(--spring); }
+.wn-card small { font-size: 13px; font-weight: 700; opacity: .7; font-variant-numeric: tabular-nums; }
+.wn-card h2 { margin: 0 0 6px; font: 800 25px var(--font-display); letter-spacing: -.03em; }
+.wn-logo { width: 72px; height: 72px; }
+
+/* =====================================================================
+   Effekt-szintek és kisegítő lehetőségek
+   ===================================================================== */
+/* „Gyors” mód (Beállítások → Kijelző → Effektek): homályosítás nélkül, átlátszatlanabb felületek */
+#screen.fx-fast *, #screen.fx-fast *::before, #screen.fx-fast *::after { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+#screen.fx-fast :is(#cc, #nc, #spot, #switcher) { background: rgba(12,14,24,.95); }
+#screen.fx-fast :is(#banner, .nc-card, #vol-hud) { background: rgba(36,38,50,.97); }
+#screen.fx-fast :is(.widget, .mwidget, .tw:not(.tw-cal):not(.tw-note), .lib-row, .lib-search, #spot-pill, .lw, #lock-owner) { background: rgba(20,22,34,.6); }
+#screen.fx-fast #dock { background: rgba(255,255,255,.2); }
+#screen.fx-fast .wx-card { background: rgba(255,255,255,.16); }
+#screen.fx-fast .game-msg { background: rgba(13,15,23,.94); }
+#screen.fx-fast.app-open #home { filter: none; }
+#screen.fx-fast .aurora-fx i { mix-blend-mode: normal; filter: blur(30px); opacity: .6; }
+#screen.fx-fast .aurora-fx i:nth-child(n+4) { display: none; }
+#screen.fx-fast :is(.sw-shot, .app-icon .icon .ic, .tw-ring::before) { filter: none; }
+#screen.fx-fast.ring-music #cam-ring { filter: none; }
+#screen.fx-fast :is(.touch-ring) { box-shadow: none; }
+
+/* Animációk csökkentése és energiatakarékos mód */
+#screen:is(.reduce-motion, .saver) *, #screen:is(.reduce-motion, .saver) *::before, #screen:is(.reduce-motion, .saver) *::after { transition-duration: 0s !important; animation-duration: 0s !important; }
+#screen:is(.reduce-motion, .saver) #cam-ring { transition: none; }
+#screen:is(.reduce-motion, .saver) #home { filter: none !important; }
+
+/* =====================================================================
+   Mozgások
+   ===================================================================== */
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pulse { 50% { opacity: .3; } }
+@keyframes ringFlash { 0% { opacity: 0; transform: scale(.7); } 25% { opacity: 1; transform: scale(1.2); } 60% { transform: scale(1); } 100% { opacity: 1; } }
+@keyframes bob { 50% { transform: translateY(-6px); } }
+@keyframes shake { 20%, 60% { transform: translateX(-10px); } 40%, 80% { transform: translateX(10px); } }
+@keyframes blink { 50% { opacity: .25; } }
+@keyframes fadeIn { from { opacity: 0; } }
+@keyframes pop { from { opacity: 0; transform: scale(.4) translateY(20px); } }
+@keyframes homeIn { from { opacity: 0; transform: scale(1.08); } }
+@keyframes rise { from { opacity: 0; translate: 0 22px; } }
+@keyframes tileIn { from { opacity: 0; scale: .5; } }
+@keyframes segIn { from { scale: .8; opacity: .4; } }
+@keyframes badgePop { from { scale: 0; } }
+@keyframes cardIn { from { transform: scale(1.3); opacity: 0; } }
+@keyframes caGrow { from { transform: scale(.3); } }
+@keyframes shine { 0% { opacity: 1; background-position: 150% 0; } 100% { opacity: 1; background-position: -60% 0; } }
+@keyframes wiggle { from { rotate: -2.4deg; } to { rotate: 2.4deg; } }
+@keyframes touchRing { from { transform: scale(.08); opacity: 1; } to { transform: scale(1); opacity: 0; } }
+@keyframes wallSlide { to { transform: translateX(-66.667%); } }
+@keyframes aur1 { to { transform: translate(35%, 30%) scale(1.25); } }
+@keyframes aur2 { to { transform: translate(-40%, -25%) scale(.85); } }
+@keyframes aur3 { to { transform: translate(30%, -45%) scale(1.15); } }
+@keyframes eq { to { height: 100%; } }
+@keyframes alarmPulse { 0% { box-shadow: 0 0 0 0 #ff9f0aaa; } 70% { box-shadow: 0 0 0 40px #ff9f0a00; } 100% { box-shadow: 0 0 0 0 #ff9f0a00; } }
+@keyframes bootIn { from { scale: 0; opacity: 0; } }
+@keyframes letterIn { from { opacity: 0; translate: 0 22px; scale: .5; } }
+@keyframes lockIn { from { opacity: 0; translate: 0 -30px; scale: .92; } }
+
+/* Görgetősávok elrejtése (a telefonon sincs látható görgetősáv) */
+#app-content, .st-detail, .wx, #nc, #spot, .ph-body, .chat-log, .rec-list, .wx-find { scrollbar-width: none; }
+:is(#app-content, .st-detail, .wx, #nc, #spot, .ph-body, .chat-log, .rec-list, .wx-find)::-webkit-scrollbar { display: none; }

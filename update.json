@@ -1,12 +1,14 @@
 {
-    "version":  "2.2",
-    "code":  202,
+    "version":  "3.0",
+    "code":  300,
     "minApk":  201,
     "files":  [
                   "apps.js",
                   "appstore.js",
                   "cool.js",
                   "extra.js",
+                  "figtree-latin-ext.woff2",
+                  "figtree-latin.woff2",
                   "i18n.js",
                   "icons.js",
                   "index.html",
@@ -14,6 +16,8 @@
                   "pages.js",
                   "settings.js",
                   "setup.js",
+                  "sora-latin-ext.woff2",
+                  "sora-latin.woff2",
                   "style.css",
                   "system.js",
                   "wow.js"
