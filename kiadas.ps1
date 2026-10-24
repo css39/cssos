@@ -1,4 +1,4 @@
-# =====================================================================
+﻿# =====================================================================
 #  CSSOS kiadás: új verzió feltöltése a GitHubra, hogy a telefonok megkapják
 #
 #  Használat (a „Telefonos cég” mappában, PowerShellben):
