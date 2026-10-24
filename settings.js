@@ -77,6 +77,7 @@ const SETTINGS_PAGES = {
         ${sLink('home', 'Kezdőképernyő', sIcon('home', '#5856d6'))}
         ${sLink('lockscreen', 'Zárolási képernyő', sIcon('device', '#ff375f'))}
         ${sLink('access', 'Kisegítő lehetőségek', sIcon('access', '#0a84ff'))}
+        ${sLink('gestures', 'Gesztusok', sIcon('hand', '#ff9f0a'))}
       </div>
       <div class="group">
         ${sLink('battery', 'Akkumulátor', sIcon('battery', '#34c759'), battText())}
@@ -252,6 +253,19 @@ const SETTINGS_PAGES = {
       </div>
       ${sNote('Energiatakarékos módban kicsit sötétebb a kijelző, nincsenek animációk, a Fénygyűrű pedig csak a kamerát jelzi. Az akkumulátor ikon sárga lesz.')}
       <div class="group">${sSw('battPct', 'Akkumulátor százalék a felső sávban')}</div>`,
+  },
+
+  gestures: {
+    title: 'Gesztusok',
+    html: () => `
+      <div class="group">${sSw('gestureNav', 'Gesztusnavigáció')}</div>
+      ${sNote('Húzd fel az alsó csíkot: az app összemegy, elengedve hazamész. Ha félúton megállsz, megnyílik az appváltó. A csíkon oldalra húzva az előző appra váltasz.')}
+      <div class="group">${sSw('quickMenu', 'Gyorsmenü')}</div>
+      ${sNote('Tarts nyomva egy ikont: felugrik az app gyors műveleteivel. Ha közben elhúzod az ujjad, átrendezheted az ikonokat.')}
+      <div class="group">${sSw('radial', 'Varázskör')}</div>
+      ${sNote('Tartsd nyomva a kezdőképernyő üres részét: gyűrű nyílik 6 gyorsgombbal. Húzd a kívánt irányba, és engedd el.')}
+      <div class="group">${sSw('dblSleep', 'Dupla koppintás: kijelző ki')}</div>
+      ${sNote('Koppints duplán a kezdő- vagy a zárolási képernyő üres részére, és kikapcsol a kijelző.')}`,
   },
 
   security: {

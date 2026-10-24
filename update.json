@@ -1,6 +1,6 @@
 {
-    "version":  "3.0",
-    "code":  300,
+    "version":  "3.1",
+    "code":  301,
     "minApk":  201,
     "files":  [
                   "apps.js",
@@ -12,6 +12,7 @@
                   "i18n.js",
                   "icons.js",
                   "index.html",
+                  "mech.js",
                   "os.js",
                   "pages.js",
                   "settings.js",

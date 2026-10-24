@@ -5,7 +5,7 @@
 // =====================================================================
 
 // A rendszer neve — ha lesz végleges név, csak itt kell átírni.
-const OS = { name: 'CSSOS', short: 'CSS', version: '3.0' };
+const OS = { name: 'CSSOS', short: 'CSS', version: '3.1' };
 
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
@@ -80,6 +80,8 @@ const settings = Object.assign({
   lang: LANG,
   // A felhasználó neve (a köszönésben) — a beállító varázsló kérdezi meg
   userName: '',
+  // 3.1 gesztusok
+  gestureNav: true, quickMenu: true, radial: true, dblSleep: true,
   // Effektek: auto = telefonon gyors, gépen látványos
   effects: 'auto',
 }, store.get('settings', {}));
@@ -316,7 +318,9 @@ function iconEl(app, label) {
     const x = e.clientX, y = e.clientY;
     t = setTimeout(() => {
       b.longPressed = true;
-      if (typeof enterEditMode === 'function') enterEditMode(b, x, y);
+      // Nyomva tartás: gyorsmenü (mech.js); ha ki van kapcsolva, rögtön szerkesztő mód
+      if (typeof showQuickMenu === 'function' && settings.quickMenu !== false) showQuickMenu(b, x, y);
+      else if (typeof enterEditMode === 'function') enterEditMode(b, x, y);
     }, 550);
   });
   ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => b.addEventListener(ev, () => clearTimeout(t)));
@@ -487,6 +491,9 @@ function animateOpen(app, fromEl) {
 }
 
 function animateClose(app) {
+  // Gesztusnál onnan indul, ahol az ujj elengedte az appot (mech.js állítja be)
+  const from = window.gestureFrom || 'none';
+  window.gestureFrom = null;
   finishWinAnim();
   const done = () => {
     winEl.classList.remove('open', 'anim');
@@ -497,7 +504,7 @@ function animateClose(app) {
   winEl.classList.add('anim');
   const hit = homeIcon(app.id);
   if (!hit) {
-    const a = winEl.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'scale(.85)' }], { duration: 240, easing: EASE_IN_OUT });
+    const a = winEl.animate([{ opacity: 1, transform: from }, { opacity: 0, transform: 'scale(.6)' }], { duration: 240, easing: EASE_IN_OUT });
     winAnims = [a];
     a.onfinish = done;
     return;
@@ -506,7 +513,7 @@ function animateClose(app) {
   hiddenIcon.style.visibility = 'hidden';
   splashEl = makeSplash(app);
   const D = 380;
-  const a = winEl.animate([{ transform: 'none' }, { transform: iconTransform(hit.r) }], { duration: D, easing: 'cubic-bezier(.3,0,.15,1)', fill: 'forwards' });
+  const a = winEl.animate([{ transform: from }, { transform: iconTransform(hit.r) }], { duration: from === 'none' ? D : 320, easing: 'cubic-bezier(.3,0,.15,1)', fill: 'forwards' });
   winAnims = [
     a,
     splashEl.animate([{ opacity: 0 }, { opacity: 1, offset: 0.5 }, { opacity: 1 }], { duration: D, fill: 'forwards' }),

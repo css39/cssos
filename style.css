@@ -1260,3 +1260,58 @@ button.row:active { background: var(--row-hi); transition-duration: 0s; }
 /* Görgetősávok elrejtése (a telefonon sincs látható görgetősáv) */
 #app-content, .st-detail, .wx, #nc, #spot, .ph-body, .chat-log, .rec-list, .wx-find { scrollbar-width: none; }
 :is(#app-content, .st-detail, .wx, #nc, #spot, .ph-body, .chat-log, .rec-list, .wx-find)::-webkit-scrollbar { display: none; }
+
+/* =====================================================================
+   3.1: új mechanikák
+   ===================================================================== */
+/* Gesztusnavigáció: az app az ujjat követi, alatta előtűnik a kezdőképernyő */
+#screen.gesturing #app-window { box-shadow: 0 30px 70px rgba(0,0,0,.6); }
+#screen.gesturing #homebar i { width: 160px; transition: width .3s var(--spring); }
+#screen.gest-switch #app-window { outline: 2px solid rgba(255,255,255,.5); outline-offset: 6px; }
+
+/* Gyorsmenü */
+#qmenu { position: absolute; inset: 0; z-index: 99; background: rgba(4,5,12,.3); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); animation: fadeIn .2s; }
+#qmenu.out { opacity: 0; transition: opacity .2s; }
+.qm-card { position: absolute; width: 238px; display: flex; flex-direction: column; gap: 8px; animation: qmIn .45s var(--spring); }
+#qmenu.out .qm-card { scale: .8; opacity: 0; transition: scale .2s, opacity .2s; }
+.qm-head, .qm-group {
+  overflow: hidden; border-radius: 20px; color: #fff;
+  background: rgba(36,38,54,.72); -webkit-backdrop-filter: var(--glass-fx); backdrop-filter: var(--glass-fx); box-shadow: var(--glass-edge), 0 20px 40px -14px rgba(0,0,0,.6);
+}
+.qm-head { display: flex; flex-direction: column; padding: 12px 16px; }
+.qm-head b { font: 300 40px/1 var(--font-display); letter-spacing: -.04em; }
+.qm-head span { font-size: 13px; opacity: .8; }
+.qm-item { width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px 16px; text-align: left; font-size: 15px; font-weight: 600; color: #fff; }
+.qm-item + .qm-item { border-top: 1px solid rgba(255,255,255,.08); }
+.qm-item .ic { font-size: 19px; opacity: .9; }
+.qm-item:active { background: rgba(255,255,255,.1); }
+.qm-item.danger { color: #ff6961 !important; }
+.qm-icon { position: absolute; z-index: 1; pointer-events: none; animation: qmLift .45s var(--spring) forwards; }
+.qm-icon .icon { width: 100% !important; height: 100% !important; box-shadow: inset 0 0 0 1px rgba(255,255,255,.18), 0 20px 40px -10px rgba(0,0,0,.7); }
+@keyframes qmLift { to { scale: 1.12; } }
+@keyframes qmIn { from { scale: .6; opacity: 0; } }
+
+/* Varázskör */
+#radial { position: absolute; inset: 0; z-index: 99; background: rgba(4,5,12,.35); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); animation: fadeIn .2s; touch-action: none; }
+#radial.out { opacity: 0; transition: opacity .25s; }
+.rad-ring { position: absolute; width: 0; height: 0; }
+.rad-ring::before {
+  content: ""; position: absolute; left: -128px; top: -128px; width: 256px; height: 256px; border-radius: 50%;
+  background: conic-gradient(from 0deg, rgba(127,83,172,.4), rgba(42,82,152,.4), rgba(56,239,125,.35), rgba(255,210,0,.35), rgba(127,83,172,.4));
+  -webkit-mask: radial-gradient(circle, transparent 60px, #000 61px, #000 127px, transparent 128px); mask: radial-gradient(circle, transparent 60px, #000 61px, #000 127px, transparent 128px);
+  animation: radIn .5s var(--spring);
+}
+.rad-core {
+  position: absolute; left: -54px; top: -54px; width: 108px; height: 108px; border-radius: 50%; display: flex; align-items: center; justify-content: center; padding: 10px;
+  text-align: center; font-size: 12px; font-weight: 700; line-height: 1.25; color: #fff; background: rgba(20,22,34,.75); box-shadow: var(--glass-edge); animation: radIn .5s var(--spring);
+}
+.rad-item {
+  position: absolute; left: -27px; top: -27px; width: 54px; height: 54px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 22px; color: #fff; background: rgba(40,42,58,.85); box-shadow: var(--glass-edge), 0 10px 24px -10px rgba(0,0,0,.6);
+  transform: translate(var(--x), var(--y)); animation: radItem .5s var(--spring) backwards; animation-delay: calc(var(--k) * 30ms);
+  transition: scale .3s var(--spring), background .15s;
+}
+.rad-item.on { scale: 1.28; background: var(--accent); box-shadow: 0 0 0 4px rgba(255,255,255,.25), 0 0 30px var(--accent); }
+@keyframes radIn { from { scale: .2; opacity: 0; } }
+@keyframes radItem { from { transform: translate(0, 0) scale(.2); opacity: 0; } }
+#screen.fx-fast :is(#qmenu, #radial) { background: rgba(4,5,12,.7); }

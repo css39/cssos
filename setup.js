@@ -145,10 +145,10 @@ window.addEventListener('load', () => {
 //  Frissítés után: „Újdonságok” ablak (pl. 1.4 → 2.0), az adatok megmaradnak
 // =====================================================================
 const WHATS_NEW = [
-  ['palette', 'Teljesen új kinézet', 'Üvegfelületek, fényes csepp ikonok, új „mesh” hátterek.'],
-  ['lock', 'Új zárolási képernyő', 'Óriási, két sorba rendezett óra, fölül az óra, alatta a perc.'],
-  ['star', 'Saját betűtípus', 'A CSSOS mostantól mindenhol a saját betűivel jelenik meg.'],
-  ['update', 'Online frissítés', 'Ez a frissítés is az internetről érkezett, telepítés nélkül.'],
+  ['hand', 'Gesztusnavigáció', 'Húzd fel az alsó csíkot: az app követi az ujjad. Félúton megállva appváltó.'],
+  ['settings', 'Gyorsmenü', 'Tarts nyomva egy ikont az app gyors műveleteihez.'],
+  ['star', 'Varázskör', 'Tartsd nyomva a kezdőképernyő üres részét: gyűrű 6 gyorsgombbal.'],
+  ['moonSmall', 'Dupla koppintás', 'Koppints duplán az üres képernyőre, és kikapcsol a kijelző.'],
 ];
 
 function showWhatsNew(from) {
