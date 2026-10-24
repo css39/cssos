@@ -57,8 +57,8 @@ const SETTINGS_PAGES = {
       <div class="s-search">${ic('search')}<input class="s-q" placeholder="Keresés a beállításokban" autocomplete="off"></div>
       <div class="s-results"></div>
       <div class="s-main">
-      <div class="group"><button class="row" data-go="general"><div class="avatar">${ic('device')}</div>
-        <div class="grow"><b>${esc(settings.deviceName)}</b><div class="muted small">${OS.name} ${OS.version}</div></div><span class="chev"></span></button></div>
+      ${(() => { const a = getAccount(); return `<div class="group"><button class="row" data-go="account"><div class="avatar">${a ? `<b data-notr>${esc(initials(a.name))}</b>` : ic('user')}</div>
+        <div class="grow"><b data-notr>${esc(a ? a.name : trText('Bejelentkezés'))}</b><div class="muted small">${a ? 'CSS fiók · @' + esc(a.user) : trText('CSS fiók, beállítás, adatok')}</div></div><span class="chev"></span></button></div>`; })()}
       <div class="group">
         ${sSw('cc.airplane', 'Repülőgép üzemmód', sIcon('plane', '#ff9f0a'))}
         ${sSw('cc.wifi', 'Wi-Fi', sIcon('wifi', '#0a84ff'))}
@@ -255,6 +255,26 @@ const SETTINGS_PAGES = {
       <div class="group">${sSw('battPct', 'Akkumulátor százalék a felső sávban')}</div>`,
   },
 
+  account: {
+    title: 'CSS fiók',
+    html: () => {
+      const a = getAccount();
+      if (!a) return `
+        <div class="group"><div class="row col"><b>Nincs bejelentkezve</b><span class="muted small">A beállító varázslóban hozhatsz létre CSS fiókot.</span></div></div>
+        <div class="group"><button class="row link" data-act="rerunSetup">Fiók létrehozása</button></div>`;
+      return `
+        <div class="acc-head"><span class="ct-av big" style="background:${nameColor(a.name)}" data-notr>${esc(initials(a.name))}</span><b data-notr>${esc(a.name)}</b><span class="muted" data-notr>@${esc(a.user)}</span></div>
+        <div class="group">
+          <div class="row">Név <span class="muted" data-notr>${esc(a.name)}</span></div>
+          <div class="row">Felhasználónév <span class="muted" data-notr>@${esc(a.user)}</span></div>
+          <div class="row">Létrehozva <span class="muted">${new Date(a.created).toLocaleDateString(LOC, { year: 'numeric', month: 'long', day: 'numeric' })}</span></div>
+          <div class="row">Eszköz <span class="muted" data-notr>${esc(settings.deviceName)}</span></div>
+        </div>
+        ${sNote('A fiók csak ezen a telefonon tárolódik. A jelszavadat nem tároljuk, csak egy titkosított ujjlenyomatát.')}
+        <div class="group"><button class="row danger" data-act="signOut">Kijelentkezés és fiók törlése</button></div>`;
+    },
+  },
+
   gestures: {
     title: 'Gesztusok',
     html: () => `
@@ -414,7 +434,11 @@ const SETTINGS_ACTIONS = {
   },
   pinOff() { settings.pin = ''; saveSettings(); },
   lockNow() { lock(); return false; },
-  rerunSetup() { store.set('setupStep', 0); location.reload(); return false; },
+  rerunSetup() { store.set('setupRev', 0); store.set('setupStep', 0); location.reload(); return false; },
+  signOut() {
+    if (!confirm('Kijelentkezel? A CSS fiók törlődik erről a telefonról, de a jegyzeteid, fotóid és beállításaid megmaradnak.')) return false;
+    store.set('account', null);
+  },
   homeSettings() { ANDROID.homeSettings(); return false; },
   androidSettings() { ANDROID.systemSettings(); return false; },
   clearChat() { if (confirm('Törlöd a teljes beszélgetést?')) store.set('chat', []); },
