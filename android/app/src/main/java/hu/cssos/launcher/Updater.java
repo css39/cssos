@@ -87,7 +87,9 @@ class Updater {
     void check(Status status) {
         new Thread(() -> {
             try {
-                JSONObject u = new JSONObject(new String(get(BASE + "update.json"), StandardCharsets.UTF_8));
+                // Az esetleges BOM-ot (láthatatlan jel a fájl elején) levágjuk
+                String text = new String(get(BASE + "update.json"), StandardCharsets.UTF_8).replace("﻿", "");
+                JSONObject u = new JSONObject(text);
                 String version = u.optString("version", "");
                 int code = u.getInt("code");
                 int minApk = u.optInt("minApk", 0);

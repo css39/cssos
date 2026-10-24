@@ -36,8 +36,9 @@ Copy-Item android\app\build\outputs\apk\debug\app-debug.apk CSSOS.apk -Force
 
 # 4. update.json: ezt nézi a telefon
 $files = Get-ChildItem -File | Where-Object { $_.Extension -in '.html', '.css', '.js' } | ForEach-Object Name
-[ordered]@{ version = $version; code = $code; minApk = $minApk; files = @($files) } |
-  ConvertTo-Json | Set-Content update.json -Encoding utf8
+$json = [ordered]@{ version = $version; code = $code; minApk = $minApk; files = @($files) } | ConvertTo-Json
+# BOM (láthatatlan jel a fájl elején) nélkül írjuk, mert azt a telefon nem tudja beolvasni
+[IO.File]::WriteAllText((Join-Path $PSScriptRoot 'update.json'), $json, (New-Object Text.UTF8Encoding $false))
 
 # 5. Feltöltés
 git add -A
